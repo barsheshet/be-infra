@@ -3,7 +3,7 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
-import { AuthService } from './services/auth.service';
+import { UsersService } from './services/users.service';
 import { AuthController } from './controllers/auth.controller';
 import { User } from './entities/user.entity';
 
@@ -27,8 +27,8 @@ import { User } from './entities/user.entity';
       inject: [ConfigService],
     }),
   ],
-  providers: [AuthService],
+  providers: [UsersService],
   controllers: [AuthController],
-  exports: [TypeOrmModule, AuthService],
+  exports: [TypeOrmModule, UsersService, JwtModule],
 })
 export class AuthModule {}

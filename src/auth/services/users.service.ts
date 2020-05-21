@@ -5,14 +5,14 @@ import { User } from '../entities/user.entity';
 import { CredentialsDto } from '../auth.dto';
 import { test as testPassword } from 'owasp-password-strength-test';
 
-export enum AuthServiceErrors {
+export enum UsersServiceErrors {
   UserAlreadyExists = 'UserAlreadyExists',
   WeakPassword = 'WeakPassword',
   InvalidEmailOrPassword = 'InvalidEmailOrPassword'
 }
 
 @Injectable()
-export class AuthService {
+export class UsersService {
   constructor(
     @InjectRepository(User)
     private usersRepository: Repository<User>,
@@ -23,7 +23,7 @@ export class AuthService {
     const strength = testPassword(creds.password);
     if (!strength.strong) {
       const err = new Error(strength.errors[0]);
-      err.name = AuthServiceErrors.WeakPassword;
+      err.name = UsersServiceErrors.WeakPassword;
       throw err;
     }
 
@@ -37,7 +37,7 @@ export class AuthService {
       });
       if (user) {
         const err = new Error();
-        err.name = AuthServiceErrors.UserAlreadyExists;
+        err.name = UsersServiceErrors.UserAlreadyExists;
         throw err;
       }
 
@@ -56,13 +56,17 @@ export class AuthService {
     }
   }
 
-  async checkCredentials(creds: CredentialsDto): Promise<User> {
+  async validateUser(creds: CredentialsDto): Promise<User> {
     const user = await this.usersRepository.findOne({email: creds.email});
     if (user && await user.verifyPassword(creds.password)) {
       return user;
     }
     const err = new Error();
-    err.name = AuthServiceErrors.InvalidEmailOrPassword;
+    err.name = UsersServiceErrors.InvalidEmailOrPassword;
     throw err;
+  }
+
+  getUserById(id: string): Promise<User> {
+    return this.usersRepository.findOne(id);
   }
 }
