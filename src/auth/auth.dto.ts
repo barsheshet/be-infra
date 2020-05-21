@@ -1,10 +1,4 @@
-import {
-  IsNotEmpty,
-  IsEmail,
-  IsLowercase,
-  MaxLength,
-} from 'class-validator';
-
+import { IsNotEmpty, IsEmail, IsLowercase, MaxLength } from 'class-validator';
 
 export enum CommandStatus {
   Complete = 'Complete',
@@ -36,4 +30,4 @@ export class SignUpResponse extends CommandResponse {
 
 export class LoginResponse extends CommandResponse {
   data: Jwt;
-} 
+}

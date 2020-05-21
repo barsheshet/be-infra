@@ -9,9 +9,7 @@ export class AuthGuard implements CanActivate {
     private readonly jwtService: JwtService,
   ) {}
 
-  async canActivate(
-    context: ExecutionContext,
-  ): Promise<boolean> {
+  async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();
     let token: string = request.headers.authorization;
     if (token) {

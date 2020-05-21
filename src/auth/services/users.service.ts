@@ -8,7 +8,7 @@ import { test as testPassword } from 'owasp-password-strength-test';
 export enum UsersServiceErrors {
   UserAlreadyExists = 'UserAlreadyExists',
   WeakPassword = 'WeakPassword',
-  InvalidEmailOrPassword = 'InvalidEmailOrPassword'
+  InvalidEmailOrPassword = 'InvalidEmailOrPassword',
 }
 
 @Injectable()
@@ -57,8 +57,8 @@ export class UsersService {
   }
 
   async validateUser(creds: CredentialsDto): Promise<User> {
-    const user = await this.usersRepository.findOne({email: creds.email});
-    if (user && await user.verifyPassword(creds.password)) {
+    const user = await this.usersRepository.findOne({ email: creds.email });
+    if (user && (await user.verifyPassword(creds.password))) {
       return user;
     }
     const err = new Error();

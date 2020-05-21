@@ -1,30 +1,30 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ConfigModule } from '@nestjs/config';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
+import { RootController } from './root.controller';
+import { RootService } from './root.service';
 
-describe('AppController', () => {
-  let appController: AppController;
+describe('RootController', () => {
+  let rootController: RootController;
 
   beforeEach(async () => {
     const app: TestingModule = await Test.createTestingModule({
       imports: [ConfigModule],
-      controllers: [AppController],
-      providers: [AppService],
+      controllers: [RootController],
+      providers: [RootService],
     }).compile();
 
-    appController = app.get<AppController>(AppController);
+    rootController = app.get<RootController>(RootController);
   });
 
   describe('root', () => {
     it('should return "OK"', () => {
-      expect(appController.getStatus()).toBe('OK');
+      expect(rootController.getStatus()).toBe('OK');
     });
   });
 
   describe('config', () => {
     it('should return basic config object', () => {
-      expect(appController.getConfig()).toEqual({});
+      expect(rootController.getConfig()).toEqual({});
     });
   });
 });

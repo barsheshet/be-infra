@@ -2,8 +2,8 @@ import { Module } from '@nestjs/common';
 import { APP_GUARD } from '@nestjs/core';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
+import { RootController } from './root.controller';
+import { RootService } from './root.service';
 import { config, envSchema } from './config/configuration';
 import { AuthModule } from './auth/auth.module';
 import { AuthGuard } from './auth/auth.guard';
@@ -26,9 +26,9 @@ import { AuthGuard } from './auth/auth.guard';
     }),
     AuthModule,
   ],
-  controllers: [AppController],
+  controllers: [RootController],
   providers: [
-    AppService,
+    RootService,
     {
       provide: APP_GUARD,
       useClass: AuthGuard,

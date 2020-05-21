@@ -2,17 +2,21 @@ import {
   Controller,
   Post,
   Body,
-  Req,
   HttpCode,
   ConflictException,
   BadRequestException,
-  UnauthorizedException
+  UnauthorizedException,
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { JwtService } from '@nestjs/jwt';
 import { UsersService, UsersServiceErrors } from '../services/users.service';
 import { User } from '../entities/user.entity';
-import { CredentialsDto, LoginResponse, SignUpResponse, CommandStatus } from '../auth.dto';
+import {
+  CredentialsDto,
+  LoginResponse,
+  SignUpResponse,
+  CommandStatus,
+} from '../auth.dto';
 
 @ApiTags('Auth')
 @Controller('/api/v1/auth')
