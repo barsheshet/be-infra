@@ -1,0 +1,18 @@
+version: '3.1'
+
+services:
+  postgres:
+    image: postgres:11.5
+    container_name: be-infra-development-pg
+    ports:
+      - "5430:5432"
+    restart: always
+    environment:
+      POSTGRES_USER: devPostgresUser
+      POSTGRES_PASSWORD: devPostgresPassword
+      POSTGRES_DB: be-infra
+  redis: 
+    image: redis:6.0
+    container_name: be-infra-development-redis
+    ports:
+      - "6379:6379"

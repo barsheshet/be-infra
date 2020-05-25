@@ -21,6 +21,8 @@ export const envSchema = Joi.object({
   DB_USERNAME: Joi.string(),
   DB_PASSWORD: Joi.string(),
   DB_NAME: Joi.string(),
+  REDIS_HOST: Joi.string(),
+  REDIS_PORT: Joi.number(),
   JWT_PRIVATE_KEY_PATH: Joi.string().uri(),
   JWT_PUBLIC_KEY_PATH: Joi.string().uri(),
   JWT_ALGORITHM: Joi.string().valid('RS256', 'RS384', 'RS512'),
@@ -35,13 +37,17 @@ export const config = () => ({
   db: {
     type: process.env.DB_TYPE || 'postgres',
     host: process.env.DB_HOST || 'localhost',
-    port: parseInt(process.env.DB_PORT, 10) || 5432,
+    port: parseInt(process.env.DB_PORT, 10) || 5430,
     username: process.env.DB_USERNAME || 'devPostgresUser',
     password: process.env.DB_PASSWORD || 'devPostgresPassword',
     database: process.env.DB_NAME || 'be-infra',
     autoLoadEntities: true,
     synchronize: false,
     migrations: ['dist/**/*.migration{.ts,.js}'],
+  },
+  redis: {
+    host: process.env.REDIS_HOST || 'localhost',
+    port: process.env.REDIS_PORT || 6379,
   },
   jwt: {
     privateKeyPath:
@@ -51,6 +57,18 @@ export const config = () => ({
       algorithm: process.env.JWT_ALGORITHM || 'RS256',
       issuer: process.env.JWT_ISSUER || 'be-infra',
       expiresIn: process.env.JWT_EXPIRES_IN || '24h',
+    },
+  },
+  rateLimits: {
+    loginSlowBruteByIP: {
+      points: 100,
+      duration: 60 * 60 * 24,
+      blockDuration: 60 * 60 * 24, // Block for 1 day, if 100 wrong attempts per day
+    },
+    loginConsecutiveFailsByUsernameAndIP: {
+      points: 10,
+      duration: 60 * 60 * 24 * 90, // Store number for 90 days since first fail
+      blockDuration: 60 * 60, // Block for 1 hour
     },
   },
 });

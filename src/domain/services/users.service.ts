@@ -2,8 +2,9 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Connection } from 'typeorm';
 import { User } from '../entities/user.entity';
-import { CredentialsDto } from '../auth.dto';
+import { CredentialsDto } from '../dto/credentials.dto';
 import { test as testPassword } from 'owasp-password-strength-test';
+import { UserInfoDto } from '../dto/user-info.dto';
 
 export enum UsersServiceErrors {
   UserAlreadyExists = 'UserAlreadyExists',
@@ -56,7 +57,7 @@ export class UsersService {
     }
   }
 
-  async validateUser(creds: CredentialsDto): Promise<User> {
+  async verifyCredentials(creds: CredentialsDto): Promise<User> {
     const user = await this.usersRepository.findOne({ email: creds.email });
     if (user && (await user.verifyPassword(creds.password))) {
       return user;
@@ -68,5 +69,11 @@ export class UsersService {
 
   getUserById(id: string): Promise<User> {
     return this.usersRepository.findOne(id);
+  }
+
+  async updateUserInfo(id: string, info: UserInfoDto) {
+    const user = await this.getUserById(id);
+    user.info = Object.assign(user.info || {}, info);
+    return this.usersRepository.save(user);
   }
 }

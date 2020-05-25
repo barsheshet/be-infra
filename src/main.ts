@@ -5,6 +5,7 @@ import {
   NestFastifyApplication,
 } from '@nestjs/platform-fastify';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
+import * as helmet from 'helmet';
 import { AppModule } from './app.module';
 import { ConfigService } from '@nestjs/config';
 import { getConnection } from 'typeorm';
@@ -12,10 +13,13 @@ import { getConnection } from 'typeorm';
 async function bootstrap() {
   const app = await NestFactory.create<NestFastifyApplication>(
     AppModule,
-    new FastifyAdapter({ logger: process.env.NODE_ENV === 'development' }),
+    new FastifyAdapter(), // todo { logger: process.env.NODE_ENV === 'development' }
   );
 
   const configService = app.get(ConfigService);
+
+  app.enableCors();
+  app.use(helmet());
 
   app.useGlobalPipes(
     new ValidationPipe({
@@ -30,7 +34,7 @@ async function bootstrap() {
     .build();
 
   const document = SwaggerModule.createDocument(app, options);
-  SwaggerModule.setup('api-docs', app, document);
+  SwaggerModule.setup('api', app, document);
 
   const port = configService.get('port');
 

@@ -1,9 +1,9 @@
 import { Injectable, CanActivate, ExecutionContext } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { UsersService } from './services/users.service';
+import { UsersService } from '../services/users.service';
 
 @Injectable()
-export class AuthGuard implements CanActivate {
+export class UserGuard implements CanActivate {
   constructor(
     private readonly usersService: UsersService,
     private readonly jwtService: JwtService,
@@ -19,7 +19,7 @@ export class AuthGuard implements CanActivate {
       try {
         const { sub } = await this.jwtService.verifyAsync(token);
         const user = await this.usersService.getUserById(sub);
-        request.user = user;
+        request.user = user.nonSensitive();
       } catch (e) {
         return true;
       }

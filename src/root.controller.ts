@@ -13,7 +13,7 @@ export class RootController {
     return this.rootService.getStatus();
   }
 
-  @Get('config')
+  @Get('getConfig')
   getConfig(): ConfigDto {
     return this.rootService.getConfig();
   }

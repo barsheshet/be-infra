@@ -17,6 +17,8 @@ class Info {
 
 class Providers {}
 
+type NonSensitive = Partial<Omit<User, 'password'>>;
+
 @Entity({ name: 'users' })
 export class User {
   @PrimaryColumn({ name: 'id' })
@@ -62,6 +64,12 @@ export class User {
 
   verifyPassword(password): Promise<boolean> {
     return compare(password, this.password);
+  }
+
+  nonSensitive(): NonSensitive {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { password, ...rest } = this;
+    return rest;
   }
 
   @BeforeInsert()

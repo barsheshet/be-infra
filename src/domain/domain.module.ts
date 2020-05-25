@@ -5,7 +5,9 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import { UsersService } from './services/users.service';
 import { AuthController } from './controllers/auth.controller';
+import { UsersController } from './controllers/users.controller';
 import { User } from './entities/user.entity';
+import { RateLimiterStoreProvider } from './providers/rate-limiter-store.provider';
 
 @Module({
   imports: [
@@ -27,8 +29,8 @@ import { User } from './entities/user.entity';
       inject: [ConfigService],
     }),
   ],
-  providers: [UsersService],
-  controllers: [AuthController],
+  providers: [UsersService, RateLimiterStoreProvider],
+  controllers: [AuthController, UsersController],
   exports: [TypeOrmModule, UsersService, JwtModule],
 })
-export class AuthModule {}
+export class DomainModule {}

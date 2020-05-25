@@ -13,3 +13,8 @@ services:
       POSTGRES_USER: devPostgresUser
       POSTGRES_PASSWORD: devPostgresPassword
       POSTGRES_DB: be-infra
+  redis: 
+    image: redis:6.0
+    container_name: be-infra-test-redis
+    ports:
+      - "6378:6379"

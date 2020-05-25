@@ -5,8 +5,8 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { RootController } from './root.controller';
 import { RootService } from './root.service';
 import { config, envSchema } from './config/configuration';
-import { AuthModule } from './auth/auth.module';
-import { AuthGuard } from './auth/auth.guard';
+import { DomainModule } from './domain/domain.module';
+import { UserGuard } from './domain/guards/user.guard';
 
 @Module({
   imports: [
@@ -14,7 +14,7 @@ import { AuthGuard } from './auth/auth.guard';
       isGlobal: true,
       expandVariables: true,
       load: [config],
-      envFilePath: ['.env', '.local.env'],
+      envFilePath: ['.env', `${process.env.NODE_ENV}.env`],
       validationSchema: envSchema,
     }),
     TypeOrmModule.forRootAsync({
@@ -24,14 +24,14 @@ import { AuthGuard } from './auth/auth.guard';
       }),
       inject: [ConfigService],
     }),
-    AuthModule,
+    DomainModule,
   ],
   controllers: [RootController],
   providers: [
     RootService,
     {
       provide: APP_GUARD,
-      useClass: AuthGuard,
+      useClass: UserGuard,
     },
   ],
 })

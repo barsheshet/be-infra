@@ -6,17 +6,19 @@ import {
   ConflictException,
   BadRequestException,
   UnauthorizedException,
+  UseInterceptors,
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { JwtService } from '@nestjs/jwt';
 import { UsersService, UsersServiceErrors } from '../services/users.service';
 import { User } from '../entities/user.entity';
+import { LoginBruteforceProtectionInterceptor } from '../interceptors/login-bruteforce-protection.interceptor';
+import { CredentialsDto } from '../dto/credentials.dto';
 import {
-  CredentialsDto,
   LoginResponse,
   SignUpResponse,
   CommandStatus,
-} from '../auth.dto';
+} from '../dto/command-response.dto';
 
 @ApiTags('Auth')
 @Controller('/api/v1/auth')
@@ -48,10 +50,11 @@ export class AuthController {
   }
 
   @Post('login')
+  @UseInterceptors(LoginBruteforceProtectionInterceptor)
   @HttpCode(200)
   async login(@Body() creds: CredentialsDto): Promise<LoginResponse> {
     try {
-      const user: User = await this.usersService.validateUser(creds);
+      const user: User = await this.usersService.verifyCredentials(creds);
       const jwt: string = await this.jwtService.signAsync({ sub: user.id });
       const response = new LoginResponse();
       response.status = CommandStatus.Complete;
