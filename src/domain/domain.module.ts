@@ -7,7 +7,11 @@ import { UsersService } from './services/users.service';
 import { AuthController } from './controllers/auth.controller';
 import { UsersController } from './controllers/users.controller';
 import { User } from './entities/user.entity';
-import { RateLimiterStoreProvider } from './providers/rate-limiter-store.provider';
+import { RedisProvider } from './providers/redis.provider';
+import { EmailProvider } from './providers/email.provider';
+import { SmsProvider } from './providers/sms.provider';
+import { VerificationsService } from './services/verifications.service';
+import { AuthService } from './services/auth.service';
 
 @Module({
   imports: [
@@ -29,7 +33,14 @@ import { RateLimiterStoreProvider } from './providers/rate-limiter-store.provide
       inject: [ConfigService],
     }),
   ],
-  providers: [UsersService, RateLimiterStoreProvider],
+  providers: [
+    UsersService,
+    AuthService,
+    VerificationsService,
+    RedisProvider,
+    EmailProvider,
+    SmsProvider,
+  ],
   controllers: [AuthController, UsersController],
   exports: [TypeOrmModule, UsersService, JwtModule],
 })

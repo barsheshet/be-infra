@@ -35,7 +35,7 @@ describe('API root (e2e)', () => {
     expect(response.status).toBe(200);
     expect(response.body).toEqual({
       host: 'http://localhost:3000',
-      nodeEnv: 'test',
+      environment: 'test',
       port: 3000,
     });
   });

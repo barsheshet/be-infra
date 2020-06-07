@@ -5,10 +5,11 @@ import {
   BeforeInsert,
   BeforeUpdate,
 } from 'typeorm';
+import * as moment from 'moment';
 import { hash, compare } from 'bcrypt';
-import * as Hyperid from 'hyperid';
+import * as hyperid from 'hyperid';
 
-const hyperid = Hyperid({ urlSafe: true });
+const uuid = hyperid({ urlSafe: true });
 
 class Info {
   firstName?: string;
@@ -17,7 +18,7 @@ class Info {
 
 class Providers {}
 
-type NonSensitive = Partial<Omit<User, 'password'>>;
+type NonSensitive = Partial<Omit<User, 'password' & 'providers'>>;
 
 @Entity({ name: 'users' })
 export class User {
@@ -49,13 +50,13 @@ export class User {
   providers: Providers;
 
   @Column({ name: 'created' })
-  created: Date;
+  created: string;
 
   @Column({ name: 'updated' })
-  updated: Date;
+  updated: string;
 
   @Column({ name: 'deleted' })
-  deleted: Date;
+  deleted: string;
 
   async setPassword(password): Promise<string> {
     this.password = await hash(password, 10);
@@ -68,22 +69,22 @@ export class User {
 
   nonSensitive(): NonSensitive {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { password, ...rest } = this;
+    const { password, providers, ...rest } = this;
     return rest;
   }
 
   @BeforeInsert()
   setId() {
-    this.id = hyperid();
+    this.id = uuid();
   }
 
   @BeforeInsert()
   setCreated() {
-    this.created = new Date();
+    this.created = moment().utc().format();
   }
 
   @BeforeUpdate()
-  setUodated() {
-    this.created = new Date();
+  setUpdated() {
+    this.updated = moment().utc().format();
   }
 }

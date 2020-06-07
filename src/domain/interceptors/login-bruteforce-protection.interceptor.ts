@@ -9,30 +9,41 @@ import {
 import { Observable } from 'rxjs';
 import { catchError, tap } from 'rxjs/operators';
 import { RateLimiterRedis } from 'rate-limiter-flexible';
-import { RateLimiterStoreProvider } from '../providers/rate-limiter-store.provider';
+import { RedisProvider } from '../providers/redis.provider';
 import { ConfigService } from '@nestjs/config';
+
+type LimitConfig = {
+  points: number;
+  duration: number;
+  blockDuration: number;
+};
+
+type Config = {
+  loginSlowBruteByIP: LimitConfig;
+  loginConsecutiveFailsByUsernameAndIP: LimitConfig;
+};
 
 @Injectable()
 export class LoginBruteforceProtectionInterceptor implements NestInterceptor {
-  private rateLimitsConfig;
+  private config: Config;
   private limiterSlowBruteByIP;
   private limiterConsecutiveFailsByUsernameAndIP;
 
   constructor(
     private configService: ConfigService,
-    private rateLimiterStore: RateLimiterStoreProvider,
+    private redis: RedisProvider,
   ) {
-    this.rateLimitsConfig = this.configService.get<object>('rateLimits');
+    this.config = this.configService.get<Config>('rateLimits');
     this.limiterSlowBruteByIP = new RateLimiterRedis({
-      storeClient: this.rateLimiterStore.store,
+      storeClient: this.redis,
       keyPrefix: 'login_fail_ip',
-      ...this.rateLimitsConfig.loginSlowBruteByIP,
+      ...this.config.loginSlowBruteByIP,
     });
 
     this.limiterConsecutiveFailsByUsernameAndIP = new RateLimiterRedis({
-      storeClient: this.rateLimiterStore.store,
+      storeClient: this.redis,
       keyPrefix: 'login_fail_consecutive_username_and_ip',
-      ...this.rateLimitsConfig.loginConsecutiveFailsByUsernameAndIP,
+      ...this.config.loginConsecutiveFailsByUsernameAndIP,
     });
   }
 
@@ -54,10 +65,9 @@ export class LoginBruteforceProtectionInterceptor implements NestInterceptor {
     ]);
 
     let retrySecs = 0;
-    const maxWrongAttemptsByIPperDay = this.rateLimitsConfig.slowBruteByIP
-      .points;
-    const maxConsecutiveFailsByUsernameAndIP = this.rateLimitsConfig
-      .consecutiveFailsByUsernameAndIP.points;
+    const maxWrongAttemptsByIPperDay = this.config.loginSlowBruteByIP.points;
+    const maxConsecutiveFailsByUsernameAndIP = this.config
+      .loginConsecutiveFailsByUsernameAndIP.points;
 
     // Check if IP or Username + IP is already blocked
     if (
@@ -78,46 +88,42 @@ export class LoginBruteforceProtectionInterceptor implements NestInterceptor {
         HttpStatus.TOO_MANY_REQUESTS,
       );
     } else {
-      return next
-        .handle()
-        .pipe(
-          catchError(async err => {
-            try {
-              const promises = [
-                this.limiterSlowBruteByIP.consume(ipAddr),
-                this.limiterConsecutiveFailsByUsernameAndIP.consume(
-                  usernameIPkey,
-                ),
-              ];
-
-              await Promise.all(promises);
-
-              throw err;
-            } catch (rlRejected) {
-              if (rlRejected instanceof Error) {
-                throw rlRejected;
-              } else {
-                throw new HttpException(
-                  'Too many requests',
-                  HttpStatus.TOO_MANY_REQUESTS,
-                );
-              }
-            }
-          }),
-        )
-        .pipe(
-          tap(async () => {
-            if (
-              resUsernameAndIP !== null &&
-              resUsernameAndIP.consumedPoints > 0
-            ) {
-              // Reset on successful authorisation
-              await this.limiterConsecutiveFailsByUsernameAndIP.delete(
+      return next.handle().pipe(
+        catchError(async err => {
+          try {
+            const promises = [
+              this.limiterSlowBruteByIP.consume(ipAddr),
+              this.limiterConsecutiveFailsByUsernameAndIP.consume(
                 usernameIPkey,
+              ),
+            ];
+
+            await Promise.all(promises);
+
+            throw err;
+          } catch (rlRejected) {
+            if (rlRejected instanceof Error) {
+              throw rlRejected;
+            } else {
+              throw new HttpException(
+                'Too many requests',
+                HttpStatus.TOO_MANY_REQUESTS,
               );
             }
-          }),
-        );
+          }
+        }),
+        tap(async () => {
+          if (
+            resUsernameAndIP !== null &&
+            resUsernameAndIP.consumedPoints > 0
+          ) {
+            // Reset on successful authorisation
+            await this.limiterConsecutiveFailsByUsernameAndIP.delete(
+              usernameIPkey,
+            );
+          }
+        }),
+      );
     }
   }
 }

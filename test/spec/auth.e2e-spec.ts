@@ -38,8 +38,21 @@ describe('API auth (e2e)', () => {
 
     expect(response.status).toBe(200);
     expect(response.body).toMatchObject({
-      status: 'Complete',
-      data: { jwt: expect.stringMatching('') },
+      jwt: expect.stringMatching('')
+    });
+  });
+
+  it('/api/v1/auth/login (POST)', async () => {
+    const response = await request(server)
+      .post('/api/v1/auth/login')
+      .send({
+        email: 'bla@bla.com',
+        password: 'Aa123456789!',
+      });
+
+    expect(response.status).toBe(200);
+    expect(response.body).toMatchObject({
+      jwt: expect.stringMatching('')
     });
   });
 });

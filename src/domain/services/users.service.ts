@@ -1,15 +1,16 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, Connection } from 'typeorm';
+import { Repository } from 'typeorm';
 import { User } from '../entities/user.entity';
-import { CredentialsDto } from '../dto/credentials.dto';
-import { test as testPassword } from 'owasp-password-strength-test';
-import { UserInfoDto } from '../dto/user-info.dto';
+import { VerificationsService } from './verifications.service';
+import { UserDto, UserInfoDto, SetMobileDto, VerifyMobilelDto, SetEmailDto, SetSmsTwoFaDto } from '../dto/users.dto';
+import { ServiceError } from '../../lib/service-error';
 
 export enum UsersServiceErrors {
+  UserDoesNotExists = 'UserDoesNotExists',
+  CouldNotVerifyMobile = 'CouldNotVerifyMobile',
   UserAlreadyExists = 'UserAlreadyExists',
-  WeakPassword = 'WeakPassword',
-  InvalidEmailOrPassword = 'InvalidEmailOrPassword',
+  MobileMustBeVerified = 'MobileMustBeVerified'
 }
 
 @Injectable()
@@ -17,63 +18,79 @@ export class UsersService {
   constructor(
     @InjectRepository(User)
     private usersRepository: Repository<User>,
-    private connection: Connection,
+    private verificationsService: VerificationsService,
   ) {}
 
-  async register(creds: CredentialsDto): Promise<User> {
-    const strength = testPassword(creds.password);
-    if (!strength.strong) {
-      const err = new Error(strength.errors[0]);
-      err.name = UsersServiceErrors.WeakPassword;
-      throw err;
-    }
-
-    const queryRunner = this.connection.createQueryRunner();
-    await queryRunner.connect();
-    await queryRunner.startTransaction('SERIALIZABLE');
-
-    try {
-      let user = await queryRunner.manager.findOne(User, {
-        email: creds.email,
+  private async getById(id: string): Promise<User> {
+    const user = await this.usersRepository.findOne(id);
+    if (!user) {
+      throw new ServiceError({
+        name: UsersServiceErrors.UserDoesNotExists,
       });
-      if (user) {
-        const err = new Error();
-        err.name = UsersServiceErrors.UserAlreadyExists;
-        throw err;
-      }
-
-      user = new User();
-      user.email = creds.email;
-
-      await user.setPassword(creds.password);
-      await queryRunner.manager.save(user);
-      await queryRunner.commitTransaction();
-      return user;
-    } catch (e) {
-      await queryRunner.rollbackTransaction();
-      throw e;
-    } finally {
-      await queryRunner.release();
     }
+    return user;
   }
 
-  async verifyCredentials(creds: CredentialsDto): Promise<User> {
-    const user = await this.usersRepository.findOne({ email: creds.email });
-    if (user && (await user.verifyPassword(creds.password))) {
-      return user;
-    }
-    const err = new Error();
-    err.name = UsersServiceErrors.InvalidEmailOrPassword;
-    throw err;
+  async me(userId: string): Promise<UserDto> {
+    const user = await this.getById(userId);
+    return user.nonSensitive() as UserDto; 
   }
 
-  getUserById(id: string): Promise<User> {
-    return this.usersRepository.findOne(id);
-  }
-
-  async updateUserInfo(id: string, info: UserInfoDto) {
-    const user = await this.getUserById(id);
+  async updateUserInfo(userId: string, info: UserInfoDto): Promise<void> {
+    const user = await this.getById(userId);
     user.info = Object.assign(user.info || {}, info);
-    return this.usersRepository.save(user);
+    await this.usersRepository.save(user);
   }
+
+  async setMobile(userId: string, { mobile }: SetMobileDto): Promise<void> {
+    const user = await this.getById(userId);
+    if (user.mobile !== mobile || !user.isMobileVerified) {
+      user.mobile = mobile;
+      user.isMobileVerified = false;
+      await this.usersRepository.save(user);
+      await this.verificationsService.sendVerificationSms(mobile, user.id);
+    }
+  }
+
+  async verifyMobile(userId: string, { verificationCode }: VerifyMobilelDto): Promise<void> {
+    const user = await this.getById(userId);
+    if (await this.verificationsService.verifySms(user.id, user.mobile, verificationCode)) {
+      user.isMobileVerified = true;
+      await this.usersRepository.save(user);
+    } else {
+      throw new ServiceError({
+        name: UsersServiceErrors.CouldNotVerifyMobile
+      });
+    }
+  }
+
+  async setEmail(userId: string, { email }: SetEmailDto): Promise<void> {
+    const user = await this.getById(userId);
+    if (user.email !== email || !user.isEmailVerified) {
+      const exists = await this.usersRepository.findOne({email});
+      if (exists && exists.id !== user.id) {
+        throw new ServiceError({
+          name: UsersServiceErrors.UserAlreadyExists
+        });
+      }
+      user.email = email;
+      user.isEmailVerified = false;
+      await this.usersRepository.save(user);
+      await this.verificationsService.sendVerificationEmail(email);
+    }
+  }
+
+  async setSmsTwoFa(userId: string, { smsTwoFa } : SetSmsTwoFaDto): Promise<void> {
+    const user = await this.getById(userId);
+    if (!smsTwoFa) {
+      user.isSmsTwoFa = false;
+    } else if (user.mobile && user.isMobileVerified) {
+      user.isSmsTwoFa = true;
+    } else {
+      throw new ServiceError({
+        name: UsersServiceErrors.MobileMustBeVerified
+      });
+    }
+    await this.usersRepository.save(user);
+  } 
 }

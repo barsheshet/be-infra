@@ -13,7 +13,7 @@ export class RootService {
     return {
       host: this.configService.get<string>('host'),
       port: this.configService.get<number>('port'),
-      nodeEnv: this.configService.get<string>('nodeEnv'),
+      environment: this.configService.get<string>('nodeEnv'),
     };
   }
 }

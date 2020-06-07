@@ -23,11 +23,17 @@ export const envSchema = Joi.object({
   DB_NAME: Joi.string(),
   REDIS_HOST: Joi.string(),
   REDIS_PORT: Joi.number(),
+  REDIS_PASSWORD: Joi.string(),
+  REDIS_CONNECTION_NAME: Joi.string(),
   JWT_PRIVATE_KEY_PATH: Joi.string().uri(),
   JWT_PUBLIC_KEY_PATH: Joi.string().uri(),
   JWT_ALGORITHM: Joi.string().valid('RS256', 'RS384', 'RS512'),
   JWT_ISSUER: Joi.string(),
   JWT_EXPIRES_IN: Joi.string(),
+  SENDGRID_API_KEY: Joi.string(),
+  SENDGRID_DEFAULT_FROM: Joi.string(),
+  TWILIO_ACCOUNT_SID: Joi.string(),
+  TWILIO_AUTH_TOKEN: Joi.string(),
 });
 
 export const config = () => ({
@@ -48,6 +54,22 @@ export const config = () => ({
   redis: {
     host: process.env.REDIS_HOST || 'localhost',
     port: process.env.REDIS_PORT || 6379,
+    password: process.env.REDIS_PASSWORD || 'devRedisPassword',
+    connectionName: process.env.REDIS_CONNECTION_NAME || 'be-infra',
+    connectTimeout: 500,
+    maxRetriesPerRequest: 1,
+  },
+  sendgrid: {
+    host: 'https://api.sendgrid.com/v3',
+    apiKey: process.env.SENDGRID_API_KEY || 'SENDGRID_API_KEY',
+    defaultFrom:
+      process.env.SENDGRID_DEFAULT_FROM || 'be-infra <noreply@be-infra.com>',
+  },
+  twilio: {
+    host: 'https://api.twilio.com/2010-04-01',
+    accountSid: process.env.TWILIO_ACCOUNT_SID || 'TWILIO_ACCOUNT_SID',
+    authToken: process.env.TWILIO_AUTH_TOKEN || 'TWILIO_AUTH_TOKEN',
+    defaultFrom: process.env.TWILIO_DEFAULT_FROM || '+12512505295',
   },
   jwt: {
     privateKeyPath:
@@ -69,6 +91,20 @@ export const config = () => ({
       points: 10,
       duration: 60 * 60 * 24 * 90, // Store number for 90 days since first fail
       blockDuration: 60 * 60, // Block for 1 hour
+    },
+  },
+  verifications: {
+    email: {
+      url: process.env.VERIFICATION_EMAIL_URL || 'http://localhost:9000',
+      expiration: {
+        hours: 24,
+      },
+    },
+    sms: {
+      url: process.env.VERIFICATION_SMS_URL || 'http://localhost:9000',
+      expiration: {
+        minutes: 5,
+      },
     },
   },
 });

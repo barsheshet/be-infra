@@ -14,5 +14,7 @@ services:
   redis: 
     image: redis:6.0
     container_name: be-infra-development-redis
+    command: redis-server --requirepass devRedisPassword
     ports:
       - "6379:6379"
+    restart: always

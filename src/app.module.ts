@@ -1,12 +1,10 @@
 import { Module } from '@nestjs/common';
-import { APP_GUARD } from '@nestjs/core';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { RootController } from './root.controller';
 import { RootService } from './root.service';
 import { config, envSchema } from './config/configuration';
 import { DomainModule } from './domain/domain.module';
-import { UserGuard } from './domain/guards/user.guard';
 
 @Module({
   imports: [
@@ -27,12 +25,6 @@ import { UserGuard } from './domain/guards/user.guard';
     DomainModule,
   ],
   controllers: [RootController],
-  providers: [
-    RootService,
-    {
-      provide: APP_GUARD,
-      useClass: UserGuard,
-    },
-  ],
+  providers: [RootService],
 })
 export class AppModule {}

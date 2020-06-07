@@ -9,40 +9,32 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
-import { JwtService } from '@nestjs/jwt';
-import { UsersService, UsersServiceErrors } from '../services/users.service';
-import { User } from '../entities/user.entity';
 import { LoginBruteforceProtectionInterceptor } from '../interceptors/login-bruteforce-protection.interceptor';
-import { CredentialsDto } from '../dto/credentials.dto';
+import { AuthService, AuthServiceErrors } from '../services/auth.service';
 import {
-  LoginResponse,
-  SignUpResponse,
-  CommandStatus,
-} from '../dto/command-response.dto';
+  JwtDto,
+  SignupDto,
+  LoginDto,
+  LoginTwoFaDto,
+  VerifyEmailDto,
+} from '../dto/auth.dto';
 
 @ApiTags('Auth')
 @Controller('/api/v1/auth')
 export class AuthController {
-  constructor(
-    private readonly usersService: UsersService,
-    private readonly jwtService: JwtService,
-  ) {}
+  constructor(private readonly authService: AuthService) {}
 
   @Post('signup')
   @HttpCode(200)
-  async signup(@Body() creds: CredentialsDto): Promise<SignUpResponse> {
+  async signup(@Body() body: SignupDto): Promise<JwtDto> {
     try {
-      const user: User = await this.usersService.register(creds);
-      const jwt: string = await this.jwtService.signAsync({ sub: user.id });
-      const response = new SignUpResponse();
-      response.status = CommandStatus.Complete;
-      response.data = { jwt };
-      return response;
+      const jwt = await this.authService.signup(body);
+      return { jwt };
     } catch (e) {
-      if (e.name === UsersServiceErrors.UserAlreadyExists) {
+      if (e.name === AuthServiceErrors.UserAlreadyExists) {
         throw new ConflictException('User already Exists');
       }
-      if (e.name === UsersServiceErrors.WeakPassword) {
+      if (e.name === AuthServiceErrors.WeakPassword) {
         throw new BadRequestException(e.message);
       }
       throw e;
@@ -50,19 +42,47 @@ export class AuthController {
   }
 
   @Post('login')
-  @UseInterceptors(LoginBruteforceProtectionInterceptor)
+  //@UseInterceptors(LoginBruteforceProtectionInterceptor)
   @HttpCode(200)
-  async login(@Body() creds: CredentialsDto): Promise<LoginResponse> {
+  async login(@Body() body: LoginDto): Promise<JwtDto> {
     try {
-      const user: User = await this.usersService.verifyCredentials(creds);
-      const jwt: string = await this.jwtService.signAsync({ sub: user.id });
-      const response = new LoginResponse();
-      response.status = CommandStatus.Complete;
-      response.data = { jwt };
-      return response;
+      const jwt = await this.authService.login(body);
+      return { jwt };
     } catch (e) {
-      if (e.name === UsersServiceErrors.InvalidEmailOrPassword) {
+      if (e.name === AuthServiceErrors.InvalidEmailOrPassword) {
         throw new UnauthorizedException('Invalid email or password');
+      }
+      throw e;
+    }
+  }
+
+  @Post('loginTwoFa')
+  //@UseInterceptors(LoginBruteforceProtectionInterceptor)
+  @HttpCode(200)
+  async loginTwoFa(@Body() body: LoginTwoFaDto): Promise<JwtDto> {
+    try {
+      const jwt = await this.authService.loginTwoFa(body);
+      return { jwt };
+    } catch (e) {
+      if (
+        e.name === AuthServiceErrors.InvalidEmailOrPasswordOrVerificationCode
+      ) {
+        throw new UnauthorizedException(
+          'Invalid email, password, or verification code',
+        );
+      }
+      throw e;
+    }
+  }
+
+  @Post('verifyEmail')
+  @HttpCode(200)
+  async verifyEmail(@Body() data: VerifyEmailDto): Promise<void> {
+    try {
+      await this.authService.verifyEmail(data);
+    } catch (e) {
+      if (e.name === AuthServiceErrors.CouldNotVerifyEmail) {
+        throw new BadRequestException('Could not verify email address');
       }
       throw e;
     }
