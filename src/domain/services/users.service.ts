@@ -3,14 +3,21 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from '../entities/user.entity';
 import { VerificationsService } from './verifications.service';
-import { UserDto, UserInfoDto, SetMobileDto, VerifyMobilelDto, SetEmailDto, SetSmsTwoFaDto } from '../dto/users.dto';
+import {
+  UserDto,
+  UserInfoDto,
+  SetMobileDto,
+  VerifyMobilelDto,
+  SetEmailDto,
+  SetSmsTwoFaDto,
+} from '../dto/users.dto';
 import { ServiceError } from '../../lib/service-error';
 
 export enum UsersServiceErrors {
   UserDoesNotExists = 'UserDoesNotExists',
   CouldNotVerifyMobile = 'CouldNotVerifyMobile',
   UserAlreadyExists = 'UserAlreadyExists',
-  MobileMustBeVerified = 'MobileMustBeVerified'
+  MobileMustBeVerified = 'MobileMustBeVerified',
 }
 
 @Injectable()
@@ -33,7 +40,7 @@ export class UsersService {
 
   async me(userId: string): Promise<UserDto> {
     const user = await this.getById(userId);
-    return user.nonSensitive() as UserDto; 
+    return user.nonSensitive() as UserDto;
   }
 
   async updateUserInfo(userId: string, info: UserInfoDto): Promise<void> {
@@ -52,14 +59,23 @@ export class UsersService {
     }
   }
 
-  async verifyMobile(userId: string, { verificationCode }: VerifyMobilelDto): Promise<void> {
+  async verifyMobile(
+    userId: string,
+    { verificationCode }: VerifyMobilelDto,
+  ): Promise<void> {
     const user = await this.getById(userId);
-    if (await this.verificationsService.verifySms(user.id, user.mobile, verificationCode)) {
+    if (
+      await this.verificationsService.verifySms(
+        user.id,
+        user.mobile,
+        verificationCode,
+      )
+    ) {
       user.isMobileVerified = true;
       await this.usersRepository.save(user);
     } else {
       throw new ServiceError({
-        name: UsersServiceErrors.CouldNotVerifyMobile
+        name: UsersServiceErrors.CouldNotVerifyMobile,
       });
     }
   }
@@ -67,10 +83,10 @@ export class UsersService {
   async setEmail(userId: string, { email }: SetEmailDto): Promise<void> {
     const user = await this.getById(userId);
     if (user.email !== email || !user.isEmailVerified) {
-      const exists = await this.usersRepository.findOne({email});
+      const exists = await this.usersRepository.findOne({ email });
       if (exists && exists.id !== user.id) {
         throw new ServiceError({
-          name: UsersServiceErrors.UserAlreadyExists
+          name: UsersServiceErrors.UserAlreadyExists,
         });
       }
       user.email = email;
@@ -80,7 +96,10 @@ export class UsersService {
     }
   }
 
-  async setSmsTwoFa(userId: string, { smsTwoFa } : SetSmsTwoFaDto): Promise<void> {
+  async setSmsTwoFa(
+    userId: string,
+    { smsTwoFa }: SetSmsTwoFaDto,
+  ): Promise<void> {
     const user = await this.getById(userId);
     if (!smsTwoFa) {
       user.isSmsTwoFa = false;
@@ -88,9 +107,9 @@ export class UsersService {
       user.isSmsTwoFa = true;
     } else {
       throw new ServiceError({
-        name: UsersServiceErrors.MobileMustBeVerified
+        name: UsersServiceErrors.MobileMustBeVerified,
       });
     }
     await this.usersRepository.save(user);
-  } 
+  }
 }

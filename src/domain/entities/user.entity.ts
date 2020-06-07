@@ -80,11 +80,15 @@ export class User {
 
   @BeforeInsert()
   setCreated() {
-    this.created = moment().utc().format();
+    this.created = moment()
+      .utc()
+      .format();
   }
 
   @BeforeUpdate()
   setUpdated() {
-    this.updated = moment().utc().format();
+    this.updated = moment()
+      .utc()
+      .format();
   }
 }

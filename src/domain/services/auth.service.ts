@@ -51,7 +51,6 @@ export class AuthService {
           name: AuthServiceErrors.UserAlreadyExists,
         });
       }
-     
 
       user = new User();
       user.email = email;
@@ -59,7 +58,7 @@ export class AuthService {
 
       await queryRunner.manager.save(user);
       await queryRunner.commitTransaction();
-      
+
       await this.verificationsService.sendVerificationEmail(user.email);
 
       return this.jwtService.signAsync({ sub: user.id });

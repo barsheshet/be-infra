@@ -38,7 +38,7 @@ describe('API auth (e2e)', () => {
 
     expect(response.status).toBe(200);
     expect(response.body).toMatchObject({
-      jwt: expect.stringMatching('')
+      jwt: expect.stringMatching(''),
     });
   });
 
@@ -52,7 +52,7 @@ describe('API auth (e2e)', () => {
 
     expect(response.status).toBe(200);
     expect(response.body).toMatchObject({
-      jwt: expect.stringMatching('')
+      jwt: expect.stringMatching(''),
     });
   });
 });

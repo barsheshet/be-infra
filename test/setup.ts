@@ -24,8 +24,14 @@ export default async () => {
 
   await app.init();
 
-  nock(configService.get('sendgrid.host')).post(/.*/).reply(200).persist();
-  nock(configService.get('twilio.host')).post(/.*/).reply(200).persist();
+  nock(configService.get('sendgrid.host'))
+    .post(/.*/)
+    .reply(200)
+    .persist();
+  nock(configService.get('twilio.host'))
+    .post(/.*/)
+    .reply(200)
+    .persist();
 
   global['__APP__'] = app;
 };

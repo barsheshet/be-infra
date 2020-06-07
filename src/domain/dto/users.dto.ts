@@ -1,4 +1,13 @@
-import { IsString, IsOptional, IsNotEmpty, IsMobilePhone, MaxLength, IsEmail, IsLowercase, IsBoolean } from 'class-validator';
+import {
+  IsString,
+  IsOptional,
+  IsNotEmpty,
+  IsMobilePhone,
+  MaxLength,
+  IsEmail,
+  IsLowercase,
+  IsBoolean,
+} from 'class-validator';
 
 export class UserInfoDto {
   @IsString()

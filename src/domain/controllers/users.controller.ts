@@ -12,7 +12,14 @@ import {
 import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { UsersService, UsersServiceErrors } from '../services/users.service';
 import { AuthGuard } from '../guards/auth.guard';
-import { UserDto, UserInfoDto, SetMobileDto, VerifyMobilelDto, SetEmailDto, SetSmsTwoFaDto } from '../dto/users.dto';
+import {
+  UserDto,
+  UserInfoDto,
+  SetMobileDto,
+  VerifyMobilelDto,
+  SetEmailDto,
+  SetSmsTwoFaDto,
+} from '../dto/users.dto';
 
 @ApiTags('Users')
 @ApiBearerAuth()
@@ -55,7 +62,10 @@ export class UsersController {
 
   @Post('verifyMobile')
   @HttpCode(200)
-  async verifyMobile(@Req() req, @Body() body: VerifyMobilelDto): Promise<void> {
+  async verifyMobile(
+    @Req() req,
+    @Body() body: VerifyMobilelDto,
+  ): Promise<void> {
     try {
       await this.usersService.verifyMobile(req.userId, body);
     } catch (e) {
@@ -86,7 +96,9 @@ export class UsersController {
       await this.usersService.setSmsTwoFa(req.userId, body);
     } catch (e) {
       if (e.name === UsersServiceErrors.MobileMustBeVerified) {
-        throw new BadRequestException('Must set and verify mobile phone to turn on 2 factor auth');
+        throw new BadRequestException(
+          'Must set and verify mobile phone to turn on 2 factor auth',
+        );
       }
       throw e;
     }
