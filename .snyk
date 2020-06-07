@@ -1,0 +1,13 @@
+# Snyk (https://snyk.io) policy file, patches or ignores known vulnerabilities.
+version: v1.14.1
+# ignores vulnerabilities until expiry date; change duration by modifying expiry date
+ignore:
+  SNYK-JS-CLASSTRANSFORMER-564431:
+    - class-transformer:
+        reason: 'nothing to do '
+        expires: '2020-07-07T16:20:45.840Z'
+# patches apply the minimum changes required to fix a vulnerability
+patch:
+  SNYK-JS-LODASH-567746:
+    - '@nestjs/swagger > lodash':
+        patched: '2020-06-07T16:18:51.893Z'
