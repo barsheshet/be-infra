@@ -9,11 +9,16 @@ import * as helmet from 'helmet';
 import { AppModule } from './app.module';
 import { ConfigService } from '@nestjs/config';
 import { getConnection } from 'typeorm';
+import * as fastifyCookie from 'fastify-cookie';
 
 async function bootstrap() {
+
+  const fastifyAdapter = new FastifyAdapter();
+  fastifyAdapter.register(fastifyCookie);
+
   const app = await NestFactory.create<NestFastifyApplication>(
     AppModule,
-    new FastifyAdapter(), // todo { logger: process.env.NODE_ENV === 'development' }
+    fastifyAdapter, // todo { logger: process.env.NODE_ENV === 'development' }
   );
 
   const configService = app.get(ConfigService);

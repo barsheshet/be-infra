@@ -36,6 +36,7 @@
     "bcrypt": "^4.0.1",
     "class-transformer": "^0.2.3",
     "class-validator": "^0.12.2",
+    "fastify-cookie": "^3.6.1",
     "fastify-swagger": "^2.5.1",
     "helmet": "^3.22.0",
     "hyperid": "^2.0.5",

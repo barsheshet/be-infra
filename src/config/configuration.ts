@@ -81,17 +81,10 @@ export const config = () => ({
       expiresIn: process.env.JWT_EXPIRES_IN || '24h',
     },
   },
-  rateLimits: {
-    loginSlowBruteByIP: {
-      points: 100,
-      duration: 60 * 60 * 24,
-      blockDuration: 60 * 60 * 24, // Block for 1 day, if 100 wrong attempts per day
-    },
-    loginConsecutiveFailsByUsernameAndIP: {
-      points: 10,
-      duration: 60 * 60 * 24 * 90, // Store number for 90 days since first fail
-      blockDuration: 60 * 60, // Block for 1 hour
-    },
+  trustedDeviceCookieOptions: {
+    httpOnly: true,
+    maxAge: 60 * 60 * 24 * 365 * 20, // 20 years :),
+    secure: process.env.NODE_ENV !== 'development',
   },
   verifications: {
     email: {
@@ -101,7 +94,6 @@ export const config = () => ({
       },
     },
     sms: {
-      url: process.env.VERIFICATION_SMS_URL || 'http://localhost:9000',
       expiration: {
         minutes: 5,
       },

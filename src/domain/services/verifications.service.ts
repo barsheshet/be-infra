@@ -8,7 +8,7 @@ import * as moment from 'moment';
 import * as hyperid from 'hyperid';
 
 type VerificationConfig = {
-  url: string;
+  url?: string;
   expiration: object;
 };
 
