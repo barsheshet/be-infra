@@ -144,8 +144,8 @@ export class BruteforceInterceptor implements NestInterceptor {
     const req = ctx.getRequest();
     const res = ctx.getResponse();
     const ip = req.ip;
-    const username = String(req.body.email);
-    const deviceIdCookieValue = String(req.cookies.deviceId);
+    const username = String(req.body?.email);
+    const deviceIdCookieValue = String(req.cookies?.deviceId);
 
     const isDeviceTrusted = await this.checkDeviceWasUsedPreviously(
       username,

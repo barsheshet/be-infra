@@ -1,39 +1,33 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { INestApplication } from '@nestjs/common';
-import * as request from 'supertest';
-import { AppModule } from '../../src/app.module';
+import { mockServer } from '../mock-server';
+import { NestFastifyApplication } from '@nestjs/platform-fastify';
 
 describe('API root (e2e)', () => {
-  let app: INestApplication;
-  let server;
+  let server: NestFastifyApplication;
 
   beforeAll(async () => {
-    const moduleFixture: TestingModule = await Test.createTestingModule({
-      imports: [AppModule],
-    }).compile();
-
-    app = moduleFixture.createNestApplication();
-
-    await app.init();
-    server = app.getHttpServer();
+    server = await mockServer();
   });
 
   afterAll(async () => {
-    await app.close();
+    await server.close();
   });
 
   it('/ (GET)', async () => {
-    const response = await request(server).get('/');
+    const response = await server.inject({
+      method: 'GET',
+      url: '/',
+    });
 
-    expect(response.status).toBe(200);
-    expect(response.text).toBe('OK');
+    expect(response.payload).toBe('OK');
   });
 
   it('/config (GET)', async () => {
-    const response = await request(server).get('/getConfig');
+    const response = await server.inject({
+      method: 'GET',
+      url: '/getConfig',
+    });
 
-    expect(response.status).toBe(200);
-    expect(response.body).toEqual({
+    expect(JSON.parse(response.payload)).toEqual({
       host: 'http://localhost:3000',
       environment: 'test',
       port: 3000,

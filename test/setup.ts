@@ -4,6 +4,7 @@ import { AppModule } from '../src/app.module';
 import { execSync } from 'child_process';
 import * as nock from 'nock';
 import { ConfigService } from '@nestjs/config';
+import { mockServer } from './mock-server';
 
 export default async () => {
   execSync('docker-compose -f ./test/docker-compose-test.yml up -d');
@@ -11,18 +12,11 @@ export default async () => {
   // wait for 3 seconds for docker to be ready
   await new Promise(resolve => setTimeout(resolve, 3000));
 
-  const moduleFixture: TestingModule = await Test.createTestingModule({
-    imports: [AppModule],
-  }).compile();
-
-  const app = moduleFixture.createNestApplication();
-
-  const configService = app.get(ConfigService);
+  const server = await mockServer();
+  const configService = server.get(ConfigService);
 
   const connection = getConnection();
   await connection.runMigrations();
-
-  await app.init();
 
   nock(configService.get('sendgrid.host'))
     .post(/.*/)
@@ -33,5 +27,5 @@ export default async () => {
     .reply(200)
     .persist();
 
-  global['__APP__'] = app;
+  global['__SERVER__'] = server;
 };
