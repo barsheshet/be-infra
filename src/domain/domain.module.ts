@@ -12,6 +12,7 @@ import { EmailProvider } from './providers/email.provider';
 import { SmsProvider } from './providers/sms.provider';
 import { VerificationsService } from './services/verifications.service';
 import { AuthService } from './services/auth.service';
+import { DomainBootstrap } from './domain.bootstrap';
 
 @Module({
   imports: [
@@ -35,6 +36,7 @@ import { AuthService } from './services/auth.service';
   ],
   providers: [
     UsersService,
+    DomainBootstrap,
     AuthService,
     VerificationsService,
     RedisProvider,
@@ -42,6 +44,6 @@ import { AuthService } from './services/auth.service';
     SmsProvider,
   ],
   controllers: [AuthController, UsersController],
-  exports: [TypeOrmModule, UsersService, JwtModule],
+  exports: [TypeOrmModule, UsersService, AuthService, VerificationsService, JwtModule],
 })
 export class DomainModule {}

@@ -1,11 +1,11 @@
-import { mockServer } from '../mock-server';
+import { getMockServer } from '../mock-server';
 import { NestFastifyApplication } from '@nestjs/platform-fastify';
 
 describe('API root (e2e)', () => {
   let server: NestFastifyApplication;
 
   beforeAll(async () => {
-    server = await mockServer();
+    server = await getMockServer();
   });
 
   afterAll(async () => {

@@ -1,5 +1,5 @@
 import { NestFactory } from '@nestjs/core';
-import { ValidationPipe, Logger } from '@nestjs/common';
+import { ValidationPipe } from '@nestjs/common';
 import {
   FastifyAdapter,
   NestFastifyApplication,
@@ -8,7 +8,6 @@ import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import * as helmet from 'helmet';
 import { AppModule } from './app.module';
 import { ConfigService } from '@nestjs/config';
-import { getConnection } from 'typeorm';
 import * as fastifyCookie from 'fastify-cookie';
 
 async function bootstrap() {
@@ -43,11 +42,6 @@ async function bootstrap() {
   SwaggerModule.setup('api', app, document);
 
   const port = configService.get('port');
-
-  Logger.log('Running migrations...', 'Mirgations');
-  const connection = getConnection();
-  await connection.runMigrations();
-  Logger.log('Migration done', 'Mirgations');
 
   await app.listen(port);
 }

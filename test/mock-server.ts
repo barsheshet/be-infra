@@ -4,8 +4,7 @@ import { ValidationPipe } from '@nestjs/common';
 import { AppModule } from '../src/app.module';
 import * as fastifyCookie from 'fastify-cookie';
 
-
-export async function mockServer(): Promise<NestFastifyApplication> {
+export async function getMockServer() {
   const moduleFixture: TestingModule = await Test.createTestingModule({
     imports: [AppModule],
   }).compile();

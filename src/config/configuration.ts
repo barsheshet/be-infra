@@ -34,6 +34,8 @@ export const envSchema = Joi.object({
   SENDGRID_DEFAULT_FROM: Joi.string(),
   TWILIO_ACCOUNT_SID: Joi.string(),
   TWILIO_AUTH_TOKEN: Joi.string(),
+  SYSTEM_ADMIN_EMAIL: Joi.string().email().required(),
+  SYSTEM_ADMIN_PASSWORD: Joi.string().required()
 });
 
 export const config = () => ({
@@ -99,4 +101,14 @@ export const config = () => ({
       },
     },
   },
+  seed: {
+    systemAdmin: {
+      email: process.env.SYSTEM_ADMIN_EMAIL,
+      password: process.env.SYSTEM_ADMIN_PASSWORD,
+    },
+    testUser: {
+      email: 'test@be-infra.com',
+      password: 'Aa123456789!',
+    }
+  }
 });

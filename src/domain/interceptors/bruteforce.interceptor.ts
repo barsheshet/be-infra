@@ -161,8 +161,7 @@ export class BruteforceInterceptor implements NestInterceptor {
         HttpStatus.TOO_MANY_REQUESTS,
       );
     }
-    //console.log(res.unsignCookie(req.cookies.foo)) 
-
+    
     return next.handle().pipe(
       catchError(async error => {
         try {

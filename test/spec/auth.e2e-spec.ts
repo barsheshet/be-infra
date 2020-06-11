@@ -1,11 +1,16 @@
-import { mockServer } from '../mock-server';
+import { getMockServer } from '../mock-server';
 import { NestFastifyApplication } from '@nestjs/platform-fastify';
+import { ConfigService } from '@nestjs/config';
 
 describe('API auth (e2e)', () => {
   let server: NestFastifyApplication;
+  let testUserCreds;
 
   beforeAll(async () => {
-    server = await mockServer();
+    server = await getMockServer();
+
+    const config = server.get(ConfigService);
+    testUserCreds = config.get('seed.testUser');
   });
 
   afterAll(async () => {
@@ -31,10 +36,7 @@ describe('API auth (e2e)', () => {
     const response = await server.inject({
       method: 'POST',
       url: '/api/v1/auth/login',
-      payload: {
-        email: 'bla@bla.com',
-        password: 'Aa123456789!',
-      }
+      payload: testUserCreds
     });
 
     expect(JSON.parse(response.payload)).toMatchObject({
