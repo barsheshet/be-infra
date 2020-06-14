@@ -34,8 +34,10 @@ export const envSchema = Joi.object({
   SENDGRID_DEFAULT_FROM: Joi.string(),
   TWILIO_ACCOUNT_SID: Joi.string(),
   TWILIO_AUTH_TOKEN: Joi.string(),
-  SYSTEM_ADMIN_EMAIL: Joi.string().email().required(),
-  SYSTEM_ADMIN_PASSWORD: Joi.string().required()
+  SYSTEM_ADMIN_EMAIL: Joi.string()
+    .email()
+    .required(),
+  SYSTEM_ADMIN_PASSWORD: Joi.string().required(),
 });
 
 export const config = () => ({
@@ -101,6 +103,27 @@ export const config = () => ({
       },
     },
   },
+  rateLimits: {
+    global: {
+      points: 5,
+      duration: 60,
+    },
+    slowBruteByIP: {
+      points: 50,
+      duration: 60 * 60 * 24,
+      blockDuration: 60 * 60 * 24, // Block for 1 day, if 50 wrong attempts per day
+    },
+    consecutiveFailsByUsernameAndIP: {
+      points: 10,
+      duration: 60 * 60 * 24 * 90, // Store number for 90 days since first fail
+      blockDuration: 60 * 60 * 24 * 365 * 20, // Block for infinity after 10 consecutive fails
+    },
+    slowBruteByUsername: {
+      points: 50,
+      duration: 60 * 60 * 24,
+      blockDuration: 60 * 60 * 24 * 365 * 20, // Block for infinity after 50 fails in one day
+    },
+  },
   seed: {
     systemAdmin: {
       email: process.env.SYSTEM_ADMIN_EMAIL,
@@ -109,6 +132,6 @@ export const config = () => ({
     testUser: {
       email: 'test@be-infra.com',
       password: 'Aa123456789!',
-    }
-  }
+    },
+  },
 });

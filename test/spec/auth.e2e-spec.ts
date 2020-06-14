@@ -24,7 +24,7 @@ describe('API auth (e2e)', () => {
       payload: {
         email: 'bla@bla.com',
         password: 'Aa123456789!',
-      }
+      },
     });
 
     expect(JSON.parse(response.payload)).toMatchObject({
@@ -36,7 +36,7 @@ describe('API auth (e2e)', () => {
     const response = await server.inject({
       method: 'POST',
       url: '/api/v1/auth/login',
-      payload: testUserCreds
+      payload: testUserCreds,
     });
 
     expect(JSON.parse(response.payload)).toMatchObject({

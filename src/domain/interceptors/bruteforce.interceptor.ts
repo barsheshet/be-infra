@@ -14,10 +14,6 @@ import { RedisProvider } from '../providers/redis.provider';
 import { ConfigService } from '@nestjs/config';
 import * as hyperid from 'hyperid';
 
-const maxWrongAttemptsByIPperDay = 50;
-const maxConsecutiveFailsByUsernameAndIP = 10;
-const maxWrongAttemptsByUsernamePerDay = 50;
-
 /**
  * Based on Roman Voloboev article
  * for more info: https://medium.com/@animirr/secure-web-applications-against-brute-force-b910263de2ab
@@ -28,29 +24,27 @@ export class BruteforceInterceptor implements NestInterceptor {
   private limiterSlowBruteByIP;
   private limiterConsecutiveFailsByUsernameAndIP;
   private limiterSlowBruteByUsername;
-  constructor(private readonly redis: RedisProvider, private readonly configService: ConfigService) {
+  constructor(
+    private readonly redis: RedisProvider,
+    private readonly configService: ConfigService,
+  ) {
+    const rateLimitsConfig = this.configService.get('rateLimits');
     this.limiterSlowBruteByIP = new RateLimiterRedis({
       storeClient: this.redis,
       keyPrefix: 'login_fail_ip_per_day',
-      points: maxWrongAttemptsByIPperDay,
-      duration: 60 * 60 * 24,
-      blockDuration: 60 * 60 * 24, // Block for 1 day, if 50 wrong attempts per day
+      ...rateLimitsConfig.slowBruteByIP,
     });
 
     this.limiterConsecutiveFailsByUsernameAndIP = new RateLimiterRedis({
       storeClient: this.redis,
       keyPrefix: 'login_fail_consecutive_username_and_ip',
-      points: maxConsecutiveFailsByUsernameAndIP,
-      duration: 60 * 60 * 24 * 90, // Store number for 90 days since first fail
-      blockDuration: 60 * 60 * 24 * 365 * 20, // Block for infinity after 10 consecutive fails
+      ...rateLimitsConfig.consecutiveFailsByUsernameAndIP,
     });
 
     this.limiterSlowBruteByUsername = new RateLimiterRedis({
       storeClient: this.redis,
       keyPrefix: 'login_fail_username_per_day',
-      points: maxWrongAttemptsByUsernamePerDay,
-      duration: 60 * 60 * 24,
-      blockDuration: 60 * 60 * 24 * 365 * 20, // Block for infinity after 50 fails in one day
+      ...rateLimitsConfig.slowBruteByUsername,
     });
   }
 
@@ -58,10 +52,10 @@ export class BruteforceInterceptor implements NestInterceptor {
     username: string,
     deviceId: string,
   ): Promise<boolean> {
-    return deviceId && !!(await this.redis.sismember(
-      `trusted_device:${username}`,
-      deviceId,
-    ));
+    return (
+      deviceId &&
+      !!(await this.redis.sismember(`trusted_device:${username}`, deviceId))
+    );
   }
 
   private async trustDevice(username: string, deviceId: string): Promise<void> {
@@ -89,24 +83,27 @@ export class BruteforceInterceptor implements NestInterceptor {
       resSlowByIP,
       resSlowUsername,
     ] = await this.getCurrentLimits(username, ip);
+    const rateLimitsConfig = this.configService.get('rateLimits');
     let retrySecs = 0;
 
     // Check if IP, Username + IP or Username is already blocked
     if (
       !isDeviceTrusted &&
       resSlowByIP !== null &&
-      resSlowByIP.consumedPoints >= maxWrongAttemptsByIPperDay
+      resSlowByIP.consumedPoints >= rateLimitsConfig.slowBruteByIP.points
     ) {
       retrySecs = Math.round(resSlowByIP.msBeforeNext / 1000) || 1;
     } else if (
       resUsernameAndIP !== null &&
-      resUsernameAndIP.consumedPoints >= maxConsecutiveFailsByUsernameAndIP
+      resUsernameAndIP.consumedPoints >=
+        rateLimitsConfig.consecutiveFailsByUsernameAndIP.points
     ) {
       retrySecs = Number.MAX_SAFE_INTEGER;
     } else if (
       !isDeviceTrusted &&
       resSlowUsername !== null &&
-      resSlowUsername.consumedPoints >= maxWrongAttemptsByUsernamePerDay
+      resSlowUsername.consumedPoints >=
+        rateLimitsConfig.slowBruteByUsername.points
     ) {
       retrySecs = Number.MAX_SAFE_INTEGER;
     }
@@ -161,7 +158,7 @@ export class BruteforceInterceptor implements NestInterceptor {
         HttpStatus.TOO_MANY_REQUESTS,
       );
     }
-    
+
     return next.handle().pipe(
       catchError(async error => {
         try {
@@ -188,12 +185,12 @@ export class BruteforceInterceptor implements NestInterceptor {
             const uuid = hyperid({ urlSafe: true });
             const deviceId = uuid();
             res.setCookie('deviceId', deviceId, {
-              ...this.configService.get('trustedDeviceCookieOptions')
-            })
+              ...this.configService.get('trustedDeviceCookieOptions'),
+            });
             await this.trustDevice(username, deviceId);
           }
         }
-        return data 
+        return data;
       }),
     );
   }

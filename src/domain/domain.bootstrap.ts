@@ -1,4 +1,3 @@
-
 import { Injectable, OnApplicationBootstrap, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -12,7 +11,7 @@ export class DomainBootstrap implements OnApplicationBootstrap {
     private usersRepository: Repository<User>,
     private readonly configService: ConfigService,
     private readonly connection: Connection,
-    ) {}
+  ) {}
 
   async onApplicationBootstrap(): Promise<void> {
     await this.connection.runMigrations();
@@ -24,8 +23,8 @@ export class DomainBootstrap implements OnApplicationBootstrap {
     Logger.log('Run seeds', DomainBootstrap.name);
   }
 
-  async seedUser(creds: {email: string, password: string}): Promise<void> {
-    let user = await this.usersRepository.findOne({email: creds.email});
+  async seedUser(creds: { email: string; password: string }): Promise<void> {
+    let user = await this.usersRepository.findOne({ email: creds.email });
     if (!user) {
       user = new User();
       user.email = creds.email;

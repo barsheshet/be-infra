@@ -1,5 +1,8 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { FastifyAdapter, NestFastifyApplication } from '@nestjs/platform-fastify';
+import {
+  FastifyAdapter,
+  NestFastifyApplication,
+} from '@nestjs/platform-fastify';
 import { ValidationPipe } from '@nestjs/common';
 import { AppModule } from '../src/app.module';
 import * as fastifyCookie from 'fastify-cookie';
@@ -12,7 +15,9 @@ export async function getMockServer() {
   const fastifyAdapter = new FastifyAdapter();
   fastifyAdapter.register(fastifyCookie);
 
-  const app = moduleFixture.createNestApplication<NestFastifyApplication>(fastifyAdapter);
+  const app = moduleFixture.createNestApplication<NestFastifyApplication>(
+    fastifyAdapter,
+  );
 
   app.useGlobalPipes(
     new ValidationPipe({

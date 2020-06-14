@@ -11,7 +11,6 @@ import { ConfigService } from '@nestjs/config';
 import * as fastifyCookie from 'fastify-cookie';
 
 async function bootstrap() {
-
   const fastifyAdapter = new FastifyAdapter();
   fastifyAdapter.register(fastifyCookie);
 
