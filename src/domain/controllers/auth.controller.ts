@@ -6,8 +6,10 @@ import {
   BadRequestException,
   UnauthorizedException,
   UseInterceptors,
+  Headers,
+  UseGuards,
 } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { BruteforceInterceptor } from '../interceptors/bruteforce.interceptor';
 import { AuthService, AuthServiceErrors } from '../services/auth.service';
 import {
@@ -17,6 +19,8 @@ import {
   LoginTwoFaDto,
   VerifyEmailDto,
 } from '../dto/auth.dto';
+import { AuthGuard } from '../guards/auth.guard';
+import { Utils } from 'src/lib/utils';
 
 @ApiTags('Auth')
 @Controller('/api/v1/auth')
@@ -86,5 +90,16 @@ export class AuthController {
       }
       throw e;
     }
+  }
+
+  @Post('logout')
+  @ApiBearerAuth()
+  @HttpCode(200)
+  @UseGuards(AuthGuard)
+  async logout(
+    @Headers() { authorization }: { authorization: string },
+  ): Promise<void> {
+    const jwt = Utils.parseAutorizationHeader(authorization);
+    await this.authService.logout({ jwt });
   }
 }

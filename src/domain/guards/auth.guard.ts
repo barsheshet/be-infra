@@ -5,26 +5,28 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
+import { RedisProvider } from '../providers/redis.provider';
+import { Utils } from '../../lib/utils';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
-  constructor(private readonly jwtService: JwtService) {}
+  constructor(
+    private readonly jwtService: JwtService,
+    private readonly redis: RedisProvider,
+  ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    const request = context.switchToHttp().getRequest();
-    let token = String(request.headers.authorization);
-    if (token) {
-      if (token.startsWith('Bearer ')) {
-        token = token.slice(7, token.length);
+    try {
+      const request = context.switchToHttp().getRequest();
+      const jwt = Utils.parseAutorizationHeader(request.headers.authorization);
+      if (await this.redis.get(`invalid_jwt:${jwt}`)) {
+        throw new Error();
       }
-      try {
-        const { sub } = await this.jwtService.verifyAsync(token);
-        request.userId = sub;
-        return true;
-      } catch (e) {
-        throw new UnauthorizedException();
-      }
+      const { sub } = await this.jwtService.verifyAsync(jwt);
+      request.userId = sub;
+      return true;
+    } catch (e) {
+      throw new UnauthorizedException();
     }
-    throw new UnauthorizedException();
   }
 }

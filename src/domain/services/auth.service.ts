@@ -7,11 +7,13 @@ import {
   SignupDto,
   LoginTwoFaDto,
   VerifyEmailDto,
+  JwtDto,
 } from '../dto/auth.dto';
 import { test as testPassword } from 'owasp-password-strength-test';
 import { JwtService } from '@nestjs/jwt';
 import { ServiceError } from '../../lib/service-error';
 import { VerificationsService } from './verifications.service';
+import { RedisProvider } from '../providers/redis.provider';
 
 export enum AuthServiceErrors {
   UserAlreadyExists = 'UserAlreadyExists',
@@ -29,6 +31,7 @@ export class AuthService {
     private readonly connection: Connection,
     private readonly jwtService: JwtService,
     private readonly verificationsService: VerificationsService,
+    private readonly redis: RedisProvider,
   ) {}
 
   async signup({ email, password }: SignupDto): Promise<string> {
@@ -109,7 +112,7 @@ export class AuthService {
     });
   }
 
-  async verifyEmail({ token }: VerifyEmailDto): Promise<null> {
+  async verifyEmail({ token }: VerifyEmailDto): Promise<void> {
     const email = await this.verificationsService.verifyEmail(token);
     if (email) {
       const user = await this.usersRepository.findOne({
@@ -119,11 +122,17 @@ export class AuthService {
       if (user) {
         user.isEmailVerified = true;
         await this.usersRepository.save(user);
-        return null;
       }
     }
     throw new ServiceError({
       name: AuthServiceErrors.CouldNotVerifyEmail,
     });
+  }
+
+  async logout({ jwt }: JwtDto): Promise<void> {
+    const key = `invalid_jwt:${jwt}`;
+    const value = this.jwtService.decode(jwt)['exp'];
+    await this.redis.set(key, value);
+    await this.redis.expireat(key, value);
   }
 }
