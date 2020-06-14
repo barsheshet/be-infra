@@ -31,19 +31,16 @@ export class BruteforceInterceptor implements NestInterceptor {
     const rateLimitsConfig = this.configService.get('rateLimits');
     this.limiterSlowBruteByIP = new RateLimiterRedis({
       storeClient: this.redis,
-      keyPrefix: 'login_fail_ip_per_day',
       ...rateLimitsConfig.slowBruteByIP,
     });
 
     this.limiterConsecutiveFailsByUsernameAndIP = new RateLimiterRedis({
       storeClient: this.redis,
-      keyPrefix: 'login_fail_consecutive_username_and_ip',
       ...rateLimitsConfig.consecutiveFailsByUsernameAndIP,
     });
 
     this.limiterSlowBruteByUsername = new RateLimiterRedis({
       storeClient: this.redis,
-      keyPrefix: 'login_fail_username_per_day',
       ...rateLimitsConfig.slowBruteByUsername,
     });
   }
