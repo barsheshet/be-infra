@@ -105,7 +105,7 @@ export const config = () => ({
   },
   rateLimits: {
     global: {
-      points: 5,
+      points: 300,
       duration: 60,
     },
     slowBruteByIP: {
