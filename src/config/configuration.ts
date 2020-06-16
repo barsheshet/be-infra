@@ -1,5 +1,4 @@
 import * as Joi from '@hapi/joi';
-import { subject } from '@casl/ability';
 
 export const envSchema = Joi.object({
   NODE_ENV: Joi.string()
