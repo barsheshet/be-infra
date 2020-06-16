@@ -6,6 +6,10 @@ ignore:
     - class-transformer:
         reason: 'nothing to do '
         expires: '2020-07-07T16:20:45.840Z'
+  SNYK-JS-THENIFY-571690:
+    - typeorm > cli-highlight > mz > thenify-all > thenify:
+        reason: None given
+        expires: '2020-07-16T12:59:28.652Z'
 # patches apply the minimum changes required to fix a vulnerability
 patch:
   SNYK-JS-LODASH-567746:
