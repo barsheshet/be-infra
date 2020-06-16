@@ -62,6 +62,7 @@ export class AuthService {
       await queryRunner.manager.save(user);
       await queryRunner.commitTransaction();
 
+      await this.redis.set(`role:${user.id}`, 'member');
       await this.verificationsService.sendVerificationEmail(user.email);
 
       return this.jwtService.signAsync({ sub: user.id });

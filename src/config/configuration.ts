@@ -1,4 +1,5 @@
 import * as Joi from '@hapi/joi';
+import { subject } from '@casl/ability';
 
 export const envSchema = Joi.object({
   NODE_ENV: Joi.string()
@@ -132,10 +133,24 @@ export const config = () => ({
     systemAdmin: {
       email: process.env.SYSTEM_ADMIN_EMAIL,
       password: process.env.SYSTEM_ADMIN_PASSWORD,
+      role: 'admin'
     },
     testUser: {
       email: 'test@be-infra.com',
       password: 'Aa123456789!',
+      role: 'member'
     },
   },
+  acl: {
+    admin: [{action: 'manage', subject: 'all' }],
+    member: [
+      { action: 'GET', subject: '/api/v1/users/getProfile' },
+      { action: 'POST', subject: '/api/v1/users/setInfo' },
+      { action: 'POST', subject: '/api/v1/users/setMobile' },
+      { action: 'POST', subject: '/api/v1/users/verifyMobile'},
+      { action: 'POST', subject: '/api/v1/users/setEmail'},
+      { action: 'POST', subject: '/api/v1/users/setSmsTwoFa'},
+      { action: 'POST', subject: '/api/v1/auth/logout'},
+    ]
+  }
 });

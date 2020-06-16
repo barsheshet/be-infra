@@ -20,18 +20,19 @@ import {
   SetEmailDto,
   SetSmsTwoFaDto,
 } from '../dto/users.dto';
+import { AclGuard } from '../guards/acl.guard';
 
 @ApiTags('Users')
 @ApiBearerAuth()
 @Controller('/api/v1/users')
-@UseGuards(AuthGuard)
+@UseGuards(AuthGuard, AclGuard)
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
-  @Get('me')
-  async me(@Req() req): Promise<UserDto> {
+  @Get('getProfile')
+  async getProfile(@Req() req): Promise<UserDto> {
     try {
-      const user = await this.usersService.me(req.userId);
+      const user = await this.usersService.getProfile(req.userId);
       return user;
     } catch (e) {
       if (e.name === UsersServiceErrors.UserDoesNotExists) {
@@ -41,11 +42,11 @@ export class UsersController {
     }
   }
 
-  @Post('updateInfo')
+  @Post('setInfo')
   @HttpCode(200)
-  async updateInfo(@Req() req, @Body() body: UserInfoDto): Promise<void> {
+  async setInfo(@Req() req, @Body() body: UserInfoDto): Promise<void> {
     try {
-      await this.usersService.updateUserInfo(req.userId, body);
+      await this.usersService.setInfo(req.userId, body);
     } catch (e) {
       if (e.name === UsersServiceErrors.UserDoesNotExists) {
         throw new NotFoundException('User does not exists');

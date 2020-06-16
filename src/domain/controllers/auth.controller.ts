@@ -21,6 +21,7 @@ import {
 } from '../dto/auth.dto';
 import { AuthGuard } from '../guards/auth.guard';
 import { Utils } from 'src/lib/utils';
+import { AclGuard } from '../guards/acl.guard';
 
 @ApiTags('Auth')
 @Controller('/api/v1/auth')
@@ -28,8 +29,8 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Post('signup')
-  @HttpCode(200)
   @UseInterceptors(BruteforceInterceptor)
+  @HttpCode(200)
   async signup(@Body() body: SignupDto): Promise<JwtDto> {
     try {
       const jwt = await this.authService.signup(body);
@@ -95,7 +96,7 @@ export class AuthController {
   @Post('logout')
   @ApiBearerAuth()
   @HttpCode(200)
-  @UseGuards(AuthGuard)
+  @UseGuards(AuthGuard, AclGuard)
   async logout(
     @Headers() { authorization }: { authorization: string },
   ): Promise<void> {

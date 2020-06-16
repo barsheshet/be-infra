@@ -3,6 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
 import { Repository, Connection } from 'typeorm';
+import { RedisProvider } from './providers/redis.provider';
 
 @Injectable()
 export class DomainBootstrap implements OnApplicationBootstrap {
@@ -11,6 +12,7 @@ export class DomainBootstrap implements OnApplicationBootstrap {
     private usersRepository: Repository<User>,
     private readonly configService: ConfigService,
     private readonly connection: Connection,
+    private readonly redis: RedisProvider,
   ) {}
 
   async onApplicationBootstrap(): Promise<void> {
@@ -23,7 +25,7 @@ export class DomainBootstrap implements OnApplicationBootstrap {
     Logger.log('Run seeds', DomainBootstrap.name);
   }
 
-  async seedUser(creds: { email: string; password: string }): Promise<void> {
+  async seedUser(creds: { email: string; password: string; role: string; }): Promise<void> {
     let user = await this.usersRepository.findOne({ email: creds.email });
     if (!user) {
       user = new User();
@@ -31,6 +33,7 @@ export class DomainBootstrap implements OnApplicationBootstrap {
       user.isEmailVerified = true;
       await user.setPassword(creds.password);
       await this.usersRepository.save(user);
+      await this.redis.set(`role:${user.id}`, creds.role);
     }
   }
 }

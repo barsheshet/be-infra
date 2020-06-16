@@ -38,12 +38,12 @@ export class UsersService {
     return user;
   }
 
-  async me(userId: string): Promise<UserDto> {
+  async getProfile(userId: string): Promise<UserDto> {
     const user = await this.getById(userId);
     return user.nonSensitive() as UserDto;
   }
 
-  async updateUserInfo(userId: string, info: UserInfoDto): Promise<void> {
+  async setInfo(userId: string, info: UserInfoDto): Promise<void> {
     const user = await this.getById(userId);
     user.info = Object.assign(user.info || {}, info);
     await this.usersRepository.save(user);
