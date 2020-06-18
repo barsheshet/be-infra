@@ -3,15 +3,13 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
-import { UsersService } from './services/users.service';
-import { AuthController } from './controllers/auth.controller';
-import { UsersController } from './controllers/users.controller';
+import { AccountService } from './services/account.service';
+import { AccountController } from './controllers/account.controller';
 import { User } from './entities/user.entity';
 import { RedisProvider } from './providers/redis.provider';
 import { EmailProvider } from './providers/email.provider';
 import { SmsProvider } from './providers/sms.provider';
 import { VerificationsService } from './services/verifications.service';
-import { AuthService } from './services/auth.service';
 import { DomainBootstrap } from './domain.bootstrap';
 import { APP_INTERCEPTOR } from '@nestjs/core';
 import { RateLimitInterceptor } from './interceptors/rate-limit.interceptor';
@@ -37,25 +35,19 @@ import { RateLimitInterceptor } from './interceptors/rate-limit.interceptor';
     }),
   ],
   providers: [
-    UsersService,
     DomainBootstrap,
-    AuthService,
     VerificationsService,
     RedisProvider,
     EmailProvider,
     SmsProvider,
+    AccountService,
+    VerificationsService,
     {
       provide: APP_INTERCEPTOR,
       useClass: RateLimitInterceptor,
     },
   ],
-  controllers: [AuthController, UsersController],
-  exports: [
-    TypeOrmModule,
-    UsersService,
-    AuthService,
-    VerificationsService,
-    JwtModule,
-  ],
+  controllers: [AccountController],
+  exports: [TypeOrmModule],
 })
 export class DomainModule {}

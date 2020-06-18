@@ -105,7 +105,7 @@ export const config = () => ({
   },
   rateLimits: {
     global: {
-      keyPrefix: 'api_hit_limit', 
+      keyPrefix: 'api_hit_limit',
       points: 300,
       duration: 60,
     },
@@ -132,24 +132,24 @@ export const config = () => ({
     systemAdmin: {
       email: process.env.SYSTEM_ADMIN_EMAIL,
       password: process.env.SYSTEM_ADMIN_PASSWORD,
-      role: 'admin'
+      role: 'admin',
     },
     testUser: {
       email: 'test@be-infra.com',
       password: 'Aa123456789!',
-      role: 'member'
+      role: 'member',
     },
   },
   acl: {
-    admin: [{action: 'manage', subject: 'all' }],
+    admin: [{ action: 'manage', subject: 'all' }],
     member: [
-      { action: 'GET', subject: '/api/v1/users/getProfile' },
-      { action: 'POST', subject: '/api/v1/users/setInfo' },
-      { action: 'POST', subject: '/api/v1/users/setMobile' },
-      { action: 'POST', subject: '/api/v1/users/verifyMobile'},
-      { action: 'POST', subject: '/api/v1/users/setEmail'},
-      { action: 'POST', subject: '/api/v1/users/setSmsTwoFa'},
-      { action: 'POST', subject: '/api/v1/auth/logout'},
-    ]
-  }
+      { action: 'GET', subject: '/api/v1/account/getProfile' },
+      { action: 'POST', subject: '/api/v1/account/setInfo' },
+      { action: 'POST', subject: '/api/v1/account/setMobile' },
+      { action: 'POST', subject: '/api/v1/account/verifyMobile' },
+      { action: 'POST', subject: '/api/v1/account/setEmail' },
+      { action: 'POST', subject: '/api/v1/account/setSmsTwoFa' },
+      { action: 'POST', subject: '/api/v1/account/logout' },
+    ],
+  },
 });

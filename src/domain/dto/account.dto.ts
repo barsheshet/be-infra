@@ -1,13 +1,43 @@
 import {
-  IsString,
-  IsOptional,
   IsNotEmpty,
-  IsMobilePhone,
-  MaxLength,
   IsEmail,
   IsLowercase,
+  MaxLength,
+  IsString,
+  IsOptional,
+  IsMobilePhone,
   IsBoolean,
 } from 'class-validator';
+
+export class CredentialsDto {
+  @IsNotEmpty()
+  @MaxLength(50)
+  @IsEmail()
+  @IsLowercase()
+  email: string;
+
+  @IsNotEmpty()
+  @MaxLength(20)
+  password: string;
+}
+
+export class LoginTwoFaDto extends CredentialsDto {
+  @IsNotEmpty()
+  @IsString()
+  @MaxLength(6)
+  verificaitonCode: string;
+}
+
+export class JwtDto {
+  jwt: string;
+}
+
+export class VerifyEmailDto {
+  @IsString()
+  @IsNotEmpty()
+  @MaxLength(36)
+  token: string;
+}
 
 export class UserInfoDto {
   @IsString()
@@ -18,8 +48,6 @@ export class UserInfoDto {
   @IsOptional()
   lastName?: string;
 }
-
-export class UpdateUserInfoDto extends UserInfoDto {}
 
 export class UserDto {
   id: string;

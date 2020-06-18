@@ -25,7 +25,11 @@ export class DomainBootstrap implements OnApplicationBootstrap {
     Logger.log('Run seeds', DomainBootstrap.name);
   }
 
-  async seedUser(creds: { email: string; password: string; role: string; }): Promise<void> {
+  async seedUser(creds: {
+    email: string;
+    password: string;
+    role: string;
+  }): Promise<void> {
     let user = await this.usersRepository.findOne({ email: creds.email });
     if (!user) {
       user = new User();
@@ -33,6 +37,9 @@ export class DomainBootstrap implements OnApplicationBootstrap {
       user.isEmailVerified = true;
       await user.setPassword(creds.password);
       await this.usersRepository.save(user);
+    }
+    const role = await this.redis.get(`role:${user.id}`);
+    if (!role) {
       await this.redis.set(`role:${user.id}`, creds.role);
     }
   }

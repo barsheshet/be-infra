@@ -13,7 +13,7 @@ export class AclGuard implements CanActivate {
   private abilities = {};
   constructor(
     private readonly redis: RedisProvider,
-    private readonly config: ConfigService
+    private readonly config: ConfigService,
   ) {
     const aclConfig = this.config.get('acl');
     for (const key in aclConfig) {
@@ -25,7 +25,10 @@ export class AclGuard implements CanActivate {
     try {
       const request = context.switchToHttp().getRequest();
       const role = await this.redis.get(`role:${request.userId}`);
-      ForbiddenError.from(this.abilities[role]).throwUnlessCan(request.raw.method, request.raw.url);
+      ForbiddenError.from(this.abilities[role]).throwUnlessCan(
+        request.raw.method,
+        request.raw.url,
+      );
       return true;
     } catch (e) {
       if (e instanceof ForbiddenError) {

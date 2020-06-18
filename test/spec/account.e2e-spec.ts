@@ -17,10 +17,10 @@ describe('API auth (e2e)', () => {
     await server.close();
   });
 
-  it('/api/v1/auth/signup (POST)', async () => {
+  it('/api/v1/account/signup (POST)', async () => {
     const response = await server.inject({
       method: 'POST',
-      url: '/api/v1/auth/signup',
+      url: '/api/v1/account/signup',
       payload: {
         email: 'bla@bla.com',
         password: 'Aa123456789!',
@@ -32,10 +32,10 @@ describe('API auth (e2e)', () => {
     });
   });
 
-  it('/api/v1/auth/login (POST)', async () => {
+  it('/api/v1/account/login (POST)', async () => {
     const response = await server.inject({
       method: 'POST',
-      url: '/api/v1/auth/login',
+      url: '/api/v1/account/login',
       payload: testUserCreds,
     });
 
