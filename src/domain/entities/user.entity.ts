@@ -55,9 +55,6 @@ export class User {
   @Column({ name: 'updated' })
   updated: string;
 
-  @Column({ name: 'deleted' })
-  deleted: string;
-
   async setPassword(password): Promise<string> {
     this.password = await hash(password, 10);
     return this.password;

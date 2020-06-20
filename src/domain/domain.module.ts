@@ -4,7 +4,9 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import { AccountService } from './services/account.service';
+import { AdminService } from './services/admin.service';
 import { AccountController } from './controllers/account.controller';
+import { AdminController } from './controllers/admin.controller';
 import { User } from './entities/user.entity';
 import { RedisProvider } from './providers/redis.provider';
 import { EmailProvider } from './providers/email.provider';
@@ -41,13 +43,14 @@ import { RateLimitInterceptor } from './interceptors/rate-limit.interceptor';
     EmailProvider,
     SmsProvider,
     AccountService,
+    AdminService,
     VerificationsService,
     {
       provide: APP_INTERCEPTOR,
       useClass: RateLimitInterceptor,
     },
   ],
-  controllers: [AccountController],
+  controllers: [AccountController, AdminController],
   exports: [TypeOrmModule],
 })
 export class DomainModule {}

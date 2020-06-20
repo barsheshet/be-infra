@@ -21,6 +21,7 @@ export const envSchema = Joi.object({
   DB_USERNAME: Joi.string(),
   DB_PASSWORD: Joi.string(),
   DB_NAME: Joi.string(),
+  DB_DEBUG: Joi.boolean(),
   REDIS_HOST: Joi.string(),
   REDIS_PORT: Joi.number(),
   REDIS_PASSWORD: Joi.string(),
@@ -54,6 +55,7 @@ export const config = () => ({
     autoLoadEntities: true,
     synchronize: false,
     migrations: ['dist/**/*.migration{.ts,.js}'],
+    logging: Boolean(process.env.DB_DEBUG) || false,
   },
   redis: {
     host: process.env.REDIS_HOST || 'localhost',

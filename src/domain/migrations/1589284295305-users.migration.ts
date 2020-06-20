@@ -61,11 +61,6 @@ export class Users1589284295305 implements MigrationInterface {
             type: 'timestamptz',
             isNullable: true,
           },
-          {
-            name: 'deleted',
-            type: 'timestamptz',
-            isNullable: true,
-          },
         ],
       }),
       true,

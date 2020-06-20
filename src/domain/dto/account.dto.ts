@@ -59,7 +59,6 @@ export class UserDto {
   isMobileVerified: boolean;
   created: string;
   updated: string;
-  deleted: string;
 }
 
 export class SetMobileDto {
