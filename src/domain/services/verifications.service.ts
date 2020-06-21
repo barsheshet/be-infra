@@ -3,7 +3,7 @@ import { EmailProvider, ContentType } from '../providers/email.provider';
 import { ConfigService } from '@nestjs/config';
 import * as crypto from 'crypto';
 import { SmsProvider } from '../providers/sms.provider';
-import { RedisProvider } from '../providers/redis.provider';
+import { RedisProvider, RedisPrefix } from '../providers/redis.provider';
 import * as moment from 'moment';
 import * as hyperid from 'hyperid';
 
@@ -44,7 +44,7 @@ export class VerificationsService {
 
   async sendVerificationEmail(email: string): Promise<void> {
     const token = this.generateToken();
-    const key = `email_verification:${token}`;
+    const key = `${RedisPrefix.EmailVerification}:${token}`;
 
     await this.redis.set(key, email);
 
@@ -69,7 +69,7 @@ export class VerificationsService {
 
   async sendVerificationSms(mobile: string, userId: string): Promise<void> {
     const verificationCode = this.generateVerificationCode();
-    const key = `sms_verification:${mobile}`;
+    const key = `${RedisPrefix.SmsVerification}:${mobile}`;
     const value = JSON.stringify({
       userId,
       verificationCode,
@@ -89,7 +89,7 @@ export class VerificationsService {
   }
 
   async verifyEmail(token: string): Promise<string> {
-    const key = `email_verification:${token}`;
+    const key = `${RedisPrefix.EmailVerification}:${token}`;
     return this.redis.get(key);
   }
 
@@ -98,7 +98,7 @@ export class VerificationsService {
     mobile: string,
     verificaitonCode: string,
   ): Promise<boolean> {
-    const key = `sms_verification:${mobile}`;
+    const key = `${RedisPrefix.SmsVerification}:${mobile}`;
     const value = await this.redis.get(key);
     if (value) {
       const parsed = JSON.parse(value);

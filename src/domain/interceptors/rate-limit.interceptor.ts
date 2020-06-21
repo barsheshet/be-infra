@@ -7,7 +7,7 @@ import {
   HttpStatus,
 } from '@nestjs/common';
 import { Observable } from 'rxjs';
-import { RedisProvider } from '../providers/redis.provider';
+import { RedisProvider, RedisPrefix } from '../providers/redis.provider';
 import { ConfigService } from '@nestjs/config';
 import { RateLimiterRedis } from 'rate-limiter-flexible';
 
@@ -20,6 +20,7 @@ export class RateLimitInterceptor implements NestInterceptor {
   ) {
     this.rateLimiter = new RateLimiterRedis({
       storeClient: this.redis,
+      keyPrefix: RedisPrefix.ApiHitLimit,
       ...this.configService.get('rateLimits.global'),
     });
   }

@@ -5,11 +5,21 @@ import {
   IsString,
   MaxLength,
   IsIn,
+  IsNotEmpty,
+  IsISO8601,
 } from 'class-validator';
 import { Transform } from 'class-transformer';
-import { UserDto as User } from './account.dto';
+import { UserDto } from './account.dto';
+import { ApiProperty } from '@nestjs/swagger';
 
-export type UserDto = User;
+export class UserExtendedDto extends UserDto {
+  role: string;
+
+  @ApiProperty({ format: 'date-time' })
+  @IsString()
+  @IsISO8601({ strict: true })
+  block: string;
+}
 
 export enum OrderByDirection {
   ASC = 'ASC',
@@ -56,9 +66,24 @@ export class GetUsersListDto {
   searchTerm?: string;
 }
 
+export class UserIdDto {
+  @IsNotEmpty()
+  @IsString()
+  @MaxLength(36)
+  userId: string;
+}
+
 export class UsersListDto {
   page: number;
   totalPages: number;
   totalItems: number;
-  users: UserDto[];
+  users: UserExtendedDto[];
+}
+
+export class BlockUserDto extends UserIdDto {
+  @ApiProperty({ format: 'date-time' })
+  @IsOptional()
+  @IsString()
+  @IsISO8601({ strict: true })
+  expiration?: string = '2050-01-01';
 }

@@ -10,7 +10,7 @@ import {
 import { Observable } from 'rxjs';
 import { RateLimiterRedis } from 'rate-limiter-flexible';
 import { catchError, map } from 'rxjs/operators';
-import { RedisProvider } from '../providers/redis.provider';
+import { RedisProvider, RedisPrefix } from '../providers/redis.provider';
 import { ConfigService } from '@nestjs/config';
 import * as hyperid from 'hyperid';
 
@@ -31,16 +31,19 @@ export class BruteforceInterceptor implements NestInterceptor {
     const rateLimitsConfig = this.configService.get('rateLimits');
     this.limiterSlowBruteByIP = new RateLimiterRedis({
       storeClient: this.redis,
+      keyPrefix: RedisPrefix.LoginFailIpPerDay,
       ...rateLimitsConfig.slowBruteByIP,
     });
 
     this.limiterConsecutiveFailsByUsernameAndIP = new RateLimiterRedis({
       storeClient: this.redis,
+      keyPrefix: RedisPrefix.LoginFailConsecutiveUsernameAndIp,
       ...rateLimitsConfig.consecutiveFailsByUsernameAndIP,
     });
 
     this.limiterSlowBruteByUsername = new RateLimiterRedis({
       storeClient: this.redis,
+      keyPrefix: RedisPrefix.LoginFailUsernamePerDay,
       ...rateLimitsConfig.slowBruteByUsername,
     });
   }
@@ -51,12 +54,15 @@ export class BruteforceInterceptor implements NestInterceptor {
   ): Promise<boolean> {
     return (
       deviceId &&
-      !!(await this.redis.sismember(`trusted_device:${username}`, deviceId))
+      !!(await this.redis.sismember(
+        `${RedisPrefix.TrustedDevice}:${username}`,
+        deviceId,
+      ))
     );
   }
 
   private async trustDevice(username: string, deviceId: string): Promise<void> {
-    await this.redis.sadd(`trusted_device:${username}`, deviceId);
+    await this.redis.sadd(`${RedisPrefix.TrustedDevice}${username}`, deviceId);
   }
 
   private getCurrentLimits(

@@ -107,24 +107,20 @@ export const config = () => ({
   },
   rateLimits: {
     global: {
-      keyPrefix: 'api_hit_limit',
       points: 300,
       duration: 60,
     },
     slowBruteByIP: {
-      keyPrefix: 'login_fail_ip_per_day',
       points: 50,
       duration: 60 * 60 * 24,
       blockDuration: 60 * 60 * 24, // Block for 1 day, if 50 wrong attempts per day
     },
     consecutiveFailsByUsernameAndIP: {
-      keyPrefix: 'login_fail_consecutive_username_and_ip',
       points: 10,
       duration: 60 * 60 * 24 * 90, // Store number for 90 days since first fail
       blockDuration: 60 * 60 * 24 * 365 * 20, // Block for infinity after 10 consecutive fails
     },
     slowBruteByUsername: {
-      keyPrefix: 'login_fail_username_per_day',
       points: 50,
       duration: 60 * 60 * 24,
       blockDuration: 60 * 60 * 24 * 365 * 20, // Block for infinity after 50 fails in one day

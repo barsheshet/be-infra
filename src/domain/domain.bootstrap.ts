@@ -3,7 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
 import { Repository, Connection } from 'typeorm';
-import { RedisProvider } from './providers/redis.provider';
+import { RedisProvider, RedisPrefix } from './providers/redis.provider';
 
 @Injectable()
 export class DomainBootstrap implements OnApplicationBootstrap {
@@ -38,9 +38,10 @@ export class DomainBootstrap implements OnApplicationBootstrap {
       await user.setPassword(creds.password);
       await this.usersRepository.save(user);
     }
-    const role = await this.redis.get(`role:${user.id}`);
+    const key = `${RedisPrefix.Role}:${user.id}`;
+    const role = await this.redis.get(key);
     if (!role) {
-      await this.redis.set(`role:${user.id}`, creds.role);
+      await this.redis.set(key, creds.role);
     }
   }
 }

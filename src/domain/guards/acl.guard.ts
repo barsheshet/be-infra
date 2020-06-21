@@ -5,7 +5,7 @@ import {
   ForbiddenException,
 } from '@nestjs/common';
 import { Ability, ForbiddenError } from '@casl/ability';
-import { RedisProvider } from '../providers/redis.provider';
+import { RedisProvider, RedisPrefix } from '../providers/redis.provider';
 import { ConfigService } from '@nestjs/config';
 
 @Injectable()
@@ -24,7 +24,9 @@ export class AclGuard implements CanActivate {
   async canActivate(context: ExecutionContext): Promise<boolean> {
     try {
       const request = context.switchToHttp().getRequest();
-      const role = await this.redis.get(`role:${request.userId}`);
+      const role = await this.redis.get(
+        `${RedisPrefix.Role}:${request.userId}`,
+      );
       ForbiddenError.from(this.abilities[role]).throwUnlessCan(
         request.raw.method,
         request.raw.url,

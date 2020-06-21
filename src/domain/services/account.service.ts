@@ -17,7 +17,7 @@ import {
 } from '../dto/account.dto';
 import { ServiceError } from '../../lib/service-error';
 import { JwtService } from '@nestjs/jwt';
-import { RedisProvider } from '../providers/redis.provider';
+import { RedisProvider, RedisPrefix } from '../providers/redis.provider';
 import { test as testPassword } from 'owasp-password-strength-test';
 
 export enum AccountServiceErrors {
@@ -70,7 +70,7 @@ export class AccountService {
       await queryRunner.manager.save(user);
       await queryRunner.commitTransaction();
 
-      await this.redis.set(`role:${user.id}`, 'member');
+      await this.redis.set(`${RedisPrefix.Role}:${user.id}`, 'member');
       await this.verificationsService.sendVerificationEmail(user.email);
 
       return this.jwtService.signAsync({ sub: user.id });
@@ -139,7 +139,7 @@ export class AccountService {
   }
 
   async logout({ jwt }: JwtDto): Promise<void> {
-    const key = `invalid_jwt:${jwt}`;
+    const key = `${RedisPrefix.InvalidJwt}:${jwt}`;
     const value = this.jwtService.decode(jwt)['exp'];
     await this.redis.set(key, value);
     await this.redis.expireat(key, value);
