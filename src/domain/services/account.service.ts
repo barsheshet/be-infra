@@ -19,6 +19,10 @@ import { ServiceError } from '../../lib/service-error';
 import { JwtService } from '@nestjs/jwt';
 import { RedisProvider, RedisPrefix } from '../providers/redis.provider';
 import { test as testPassword } from 'owasp-password-strength-test';
+import * as moment from 'moment';
+import { Utils } from '../../lib/utils';
+import { ConfigService } from '@nestjs/config';
+
 
 export enum AccountServiceErrors {
   UserDoesNotExists = 'UserDoesNotExists',
@@ -29,6 +33,12 @@ export enum AccountServiceErrors {
   InvalidEmailOrPassword = 'InvalidEmailOrPassword',
   InvalidEmailOrPasswordOrVerificationCode = 'InvalidEmailOrPasswordOrVerificationCode',
   CouldNotVerifyEmail = 'CouldNotVerifyEmail',
+  InvalidRefreshToken = 'InvalidRefreshToken',
+}
+
+export type AuthResult = {
+  jwt: string,
+  refreshToken: string
 }
 
 @Injectable()
@@ -40,9 +50,25 @@ export class AccountService {
     private readonly jwtService: JwtService,
     private readonly verificationsService: VerificationsService,
     private readonly redis: RedisProvider,
+    private readonly configService: ConfigService,
   ) {}
 
-  async signup({ email, password }: CredentialsDto): Promise<string> {
+  private async createAuthResult(user: User): Promise<AuthResult> {
+    const refreshToken = Utils.generateToken();
+    const key = `${RedisPrefix.RefreshToken}:${user.id}:${refreshToken}`;
+    const expire = this.configService.get('refreshTokenCookieOptions').maxAge;
+    const refreshTokenExpiration = moment().utc().add(expire, 'seconds').format();
+    await this.redis.setex(key, expire, refreshTokenExpiration);
+
+    const jwt = await this.jwtService.signAsync({
+      sub: user.id, 
+      role: user.role
+    });
+
+    return {jwt, refreshToken}; 
+  }
+
+  async signup({ email, password }: CredentialsDto): Promise<AuthResult> {
     const strength = testPassword(password);
     if (!strength.strong) {
       throw new ServiceError({
@@ -65,15 +91,16 @@ export class AccountService {
 
       user = new User();
       user.email = email;
+      user.role = 'member';
+
       await user.setPassword(password);
 
       await queryRunner.manager.save(user);
       await queryRunner.commitTransaction();
 
-      await this.redis.set(`${RedisPrefix.Role}:${user.id}`, 'member');
       await this.verificationsService.sendVerificationEmail(user.email);
 
-      return this.jwtService.signAsync({ sub: user.id });
+      return this.createAuthResult(user);
     } catch (e) {
       await queryRunner.rollbackTransaction();
       throw e;
@@ -82,7 +109,7 @@ export class AccountService {
     }
   }
 
-  async login({ email, password }: CredentialsDto): Promise<string> {
+  async login({ email, password }: CredentialsDto): Promise<AuthResult> {
     const user = await this.usersRepository.findOne({ email });
     if (user && (await user.verifyPassword(password))) {
       if (user.isSmsTwoFa) {
@@ -92,7 +119,7 @@ export class AccountService {
         );
         return null;
       }
-      return this.jwtService.signAsync({ sub: user.id });
+      return this.createAuthResult(user);
     }
     throw new ServiceError({
       name: AccountServiceErrors.InvalidEmailOrPassword,
@@ -103,7 +130,7 @@ export class AccountService {
     email,
     password,
     verificaitonCode,
-  }: LoginTwoFaDto): Promise<string> {
+  }: LoginTwoFaDto): Promise<AuthResult> {
     const user = await this.usersRepository.findOne({ email });
     if (user && (await user.verifyPassword(password))) {
       if (
@@ -113,11 +140,25 @@ export class AccountService {
           verificaitonCode,
         )
       ) {
-        return this.jwtService.signAsync({ sub: user.id });
+        return this.createAuthResult(user);
       }
     }
     throw new ServiceError({
       name: AccountServiceErrors.InvalidEmailOrPasswordOrVerificationCode,
+    });
+  }
+
+  async refreshToken(token): Promise<AuthResult> {
+    const tokens = await this.redis.keys(`${RedisPrefix.RefreshToken}:*:${token}`);
+    if (tokens[0]) {
+      const userId = tokens[0].split(':')[1];
+      const user = await this.usersRepository.findOne(userId);
+      if (!user.isBlocked) {
+        return this.createAuthResult(user);
+      }
+    }
+    throw new ServiceError({
+      name: AccountServiceErrors.InvalidRefreshToken,
     });
   }
 
@@ -138,11 +179,9 @@ export class AccountService {
     });
   }
 
-  async logout({ jwt }: JwtDto): Promise<void> {
-    const key = `${RedisPrefix.InvalidJwt}:${jwt}`;
-    const value = this.jwtService.decode(jwt)['exp'];
-    await this.redis.set(key, value);
-    await this.redis.expireat(key, value);
+  async logout(id: string): Promise<void> {
+    const tokens = await this.redis.keys(`${RedisPrefix.RefreshToken}:${id}:*`);
+    await this.redis.del(tokens);
   }
 
   private async getById(id: string): Promise<User> {

@@ -19,7 +19,6 @@ import {
   UsersListDto,
   UserExtendedDto,
   UserIdDto,
-  BlockUserDto,
 } from '../dto/admin.dto';
 
 @ApiTags('Admin')
@@ -51,9 +50,9 @@ export class AdminController {
 
   @Post('blockUser')
   @HttpCode(200)
-  async blockUser(@Body() options: BlockUserDto): Promise<void> {
+  async blockUser(@Body()  { userId }: UserIdDto): Promise<void> {
     try {
-      await this.adminService.blockUser(options);
+      await this.adminService.blockUser(userId);
     } catch (e) {
       if (e.name === AccountServiceErrors.UserDoesNotExists) {
         throw new NotFoundException('User does not exists');

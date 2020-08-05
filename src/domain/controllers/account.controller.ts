@@ -6,11 +6,11 @@ import {
   BadRequestException,
   UnauthorizedException,
   UseInterceptors,
-  Headers,
   UseGuards,
   NotFoundException,
   Get,
   Req,
+  Res,
 } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { BruteforceInterceptor } from '../interceptors/bruteforce.interceptor';
@@ -31,21 +31,29 @@ import {
   SetSmsTwoFaDto,
 } from '../dto/account.dto';
 import { AuthGuard } from '../guards/auth.guard';
-import { Utils } from '../../lib/utils';
 import { AclGuard } from '../guards/acl.guard';
+import { ConfigService } from '@nestjs/config';
 
 @ApiTags('Account')
 @Controller('/api/v1/account')
 export class AccountController {
-  constructor(private readonly accountService: AccountService) {}
+  constructor(
+    private readonly accountService: AccountService,
+    private readonly configService: ConfigService
+  ) {}
 
   @Post('signup')
   @UseInterceptors(BruteforceInterceptor)
   @HttpCode(200)
-  async signup(@Body() body: CredentialsDto): Promise<JwtDto> {
+  async signup(@Body() body: CredentialsDto, @Res() res): Promise<JwtDto> {
     try {
-      const jwt = await this.accountService.signup(body);
-      return { jwt };
+      const authResult = await this.accountService.signup(body);
+
+      res.setCookie('refreshToken', authResult.refreshToken, {
+        ...this.configService.get('refreshTokenCookieOptions'),
+      });
+
+      return { jwt: authResult.jwt };
     } catch (e) {
       if (e.name === AccountServiceErrors.UserAlreadyExists) {
         throw new UnauthorizedException('User already Exists');
@@ -60,10 +68,13 @@ export class AccountController {
   @Post('login')
   @UseInterceptors(BruteforceInterceptor)
   @HttpCode(200)
-  async login(@Body() body: CredentialsDto): Promise<JwtDto> {
+  async login(@Body() body: CredentialsDto, @Res() res): Promise<JwtDto> {
     try {
-      const jwt = await this.accountService.login(body);
-      return { jwt };
+      const authResult = await this.accountService.login(body);
+      res.setCookie('refreshToken', authResult.refreshToken, {
+        ...this.configService.get('refreshTokenCookieOptions'),
+      });
+      return { jwt: authResult.jwt };
     } catch (e) {
       if (e.name === AccountServiceErrors.InvalidEmailOrPassword) {
         throw new UnauthorizedException('Invalid email or password');
@@ -72,13 +83,18 @@ export class AccountController {
     }
   }
 
-  @Post('loginTwoFa')
+  @Post('login-two-fa')
   @UseInterceptors(BruteforceInterceptor)
   @HttpCode(200)
-  async loginTwoFa(@Body() body: LoginTwoFaDto): Promise<JwtDto> {
+  async loginTwoFa(@Body() body: LoginTwoFaDto, @Res() res): Promise<JwtDto> {
     try {
-      const jwt = await this.accountService.loginTwoFa(body);
-      return { jwt };
+      const authResult = await this.accountService.loginTwoFa(body);
+
+      res.setCookie('refreshToken', authResult.refreshToken, {
+        ...this.configService.get('refreshTokenCookieOptions'),
+      });
+
+      return { jwt: authResult.jwt };
     } catch (e) {
       if (
         e.name === AccountServiceErrors.InvalidEmailOrPasswordOrVerificationCode
@@ -86,6 +102,25 @@ export class AccountController {
         throw new UnauthorizedException(
           'Invalid email, password, or verification code',
         );
+      }
+      throw e;
+    }
+  }
+
+  @Get('refresh-token')
+  @HttpCode(200)
+  async refreshToken(@Req() req, @Res() res): Promise<JwtDto> {
+    try {
+      const authResult = await this.accountService.refreshToken(req.cookies?.refreshToken);
+
+      res.setCookie('refreshToken', authResult.refreshToken, {
+        ...this.configService.get('refreshTokenCookieOptions'),
+      });
+
+      return { jwt: authResult.jwt };
+    } catch (e) {
+      if (e.name === AccountServiceErrors.InvalidRefreshToken) {
+        throw new BadRequestException('Invalid refresh token');
       }
       throw e;
     }
@@ -108,19 +143,16 @@ export class AccountController {
   @ApiBearerAuth()
   @HttpCode(200)
   @UseGuards(AuthGuard, AclGuard)
-  async logout(
-    @Headers() { authorization }: { authorization: string },
-  ): Promise<void> {
-    const jwt = Utils.parseAutorizationHeader(authorization);
-    await this.accountService.logout({ jwt });
+  async logout(@Req() req): Promise<void> {
+    await this.accountService.logout(req.user.id);
   }
 
-  @Get('getProfile')
+  @Get('get-profile')
   @ApiBearerAuth()
   @UseGuards(AuthGuard, AclGuard)
   async getProfile(@Req() req): Promise<UserDto> {
     try {
-      const user = await this.accountService.getProfile(req.userId);
+      const user = await this.accountService.getProfile(req.user.id);
       return user;
     } catch (e) {
       if (e.name === AccountServiceErrors.UserDoesNotExists) {
@@ -130,13 +162,13 @@ export class AccountController {
     }
   }
 
-  @Post('setInfo')
+  @Post('set-info')
   @ApiBearerAuth()
   @HttpCode(200)
   @UseGuards(AuthGuard, AclGuard)
   async setInfo(@Req() req, @Body() body: UserInfoDto): Promise<void> {
     try {
-      await this.accountService.setInfo(req.userId, body);
+      await this.accountService.setInfo(req.user.id, body);
     } catch (e) {
       if (e.name === AccountServiceErrors.UserDoesNotExists) {
         throw new NotFoundException('User does not exists');
@@ -145,15 +177,15 @@ export class AccountController {
     }
   }
 
-  @Post('setMobile')
+  @Post('set-mobile')
   @ApiBearerAuth()
   @HttpCode(200)
   @UseGuards(AuthGuard, AclGuard)
   async setMobile(@Req() req, @Body() body: SetMobileDto): Promise<void> {
-    await this.accountService.setMobile(req.userId, body);
+    await this.accountService.setMobile(req.user.id, body);
   }
 
-  @Post('verifyMobile')
+  @Post('verify-mobile')
   @ApiBearerAuth()
   @HttpCode(200)
   @UseGuards(AuthGuard, AclGuard)
@@ -162,7 +194,7 @@ export class AccountController {
     @Body() body: VerifyMobilelDto,
   ): Promise<void> {
     try {
-      await this.accountService.verifyMobile(req.userId, body);
+      await this.accountService.verifyMobile(req.user.id, body);
     } catch (e) {
       if (e.name === AccountServiceErrors.CouldNotVerifyMobile) {
         throw new BadRequestException('Could not verify Mobile phone');
@@ -171,13 +203,13 @@ export class AccountController {
     }
   }
 
-  @Post('setEmail')
+  @Post('set-email')
   @ApiBearerAuth()
   @HttpCode(200)
   @UseGuards(AuthGuard, AclGuard)
   async setEmail(@Req() req, @Body() body: SetEmailDto): Promise<void> {
     try {
-      await this.accountService.setEmail(req.userId, body);
+      await this.accountService.setEmail(req.user.id, body);
     } catch (e) {
       if (e.name === AccountServiceErrors.UserAlreadyExists) {
         throw new BadRequestException('A user with this email already exists');
@@ -186,13 +218,13 @@ export class AccountController {
     }
   }
 
-  @Post('setSmsTwoFa')
+  @Post('set-sms-two-fa')
   @ApiBearerAuth()
   @HttpCode(200)
   @UseGuards(AuthGuard, AclGuard)
   async setSmsTwoFa(@Req() req, @Body() body: SetSmsTwoFaDto): Promise<void> {
     try {
-      await this.accountService.setSmsTwoFa(req.userId, body);
+      await this.accountService.setSmsTwoFa(req.user.id, body);
     } catch (e) {
       if (e.name === AccountServiceErrors.MobileMustBeVerified) {
         throw new BadRequestException(

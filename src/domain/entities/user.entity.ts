@@ -28,6 +28,9 @@ export class User {
   @Column({ name: 'email' })
   email: string;
 
+  @Column({ name: 'role' })
+  role: string;
+
   @Column({ name: 'mobile' })
   mobile: string;
 
@@ -45,6 +48,9 @@ export class User {
 
   @Column({ name: 'is_mobile_verified', type: 'boolean' })
   isMobileVerified = false;
+
+  @Column({ name: 'is_blocked', type: 'boolean' })
+  isBlocked = false;
 
   @Column({ name: 'providers', type: 'jsonb' })
   providers: Providers;

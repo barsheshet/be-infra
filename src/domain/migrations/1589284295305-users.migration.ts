@@ -14,8 +14,12 @@ export class Users1589284295305 implements MigrationInterface {
           {
             name: 'email',
             type: 'varchar',
-            isNullable: true,
             isUnique: true
+          },
+          {
+            name: 'role',
+            type: 'varchar',
+            isNullable: false,
           },
           {
             name: 'mobile',
@@ -36,6 +40,10 @@ export class Users1589284295305 implements MigrationInterface {
             name: 'info',
             type: 'jsonb',
             isNullable: true,
+          },
+          {
+            name: 'is_blocked',
+            type: 'boolean',
           },
           {
             name: 'is_email_verified',

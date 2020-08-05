@@ -84,11 +84,18 @@ export const config = () => ({
     options: {
       algorithm: process.env.JWT_ALGORITHM || 'RS256',
       issuer: process.env.JWT_ISSUER || 'be-infra',
-      expiresIn: process.env.JWT_EXPIRES_IN || '24h',
+      expiresIn: '15m' // 15 minutes,
     },
+  },
+  refreshTokenCookieOptions: {
+    httpOnly: true,
+    sameSite: true,
+    maxAge: 60 * 60 * 24 * 30, // 30 days
+    secure: process.env.NODE_ENV !== 'development',
   },
   trustedDeviceCookieOptions: {
     httpOnly: true,
+    sameSite: true,
     maxAge: 60 * 60 * 24 * 365 * 20, // 20 years :),
     secure: process.env.NODE_ENV !== 'development',
   },

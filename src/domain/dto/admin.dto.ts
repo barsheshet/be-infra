@@ -79,11 +79,3 @@ export class UsersListDto {
   totalItems: number;
   users: UserExtendedDto[];
 }
-
-export class BlockUserDto extends UserIdDto {
-  @ApiProperty({ format: 'date-time' })
-  @IsOptional()
-  @IsString()
-  @IsISO8601({ strict: true })
-  expiration?: string = '2050-01-01';
-}
