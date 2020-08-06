@@ -10,10 +10,10 @@ import {
   NotFoundException,
   Get,
   Req,
-  Res,
 } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { BruteforceInterceptor } from '../interceptors/bruteforce.interceptor';
+import { RefreshTokenInterceptor } from '../interceptors/refresh-token.interceptor';
 import {
   AccountServiceErrors,
   AccountService,
@@ -43,17 +43,13 @@ export class AccountController {
   ) {}
 
   @Post('signup')
-  @UseInterceptors(BruteforceInterceptor)
+  @UseInterceptors(RefreshTokenInterceptor, BruteforceInterceptor)
   @HttpCode(200)
-  async signup(@Body() body: CredentialsDto, @Res() res): Promise<JwtDto> {
+  async signup(@Body() body: CredentialsDto): Promise<JwtDto> {
     try {
-      const authResult = await this.accountService.signup(body);
+      const result = await this.accountService.signup(body);
 
-      res.setCookie('refreshToken', authResult.refreshToken, {
-        ...this.configService.get('refreshTokenCookieOptions'),
-      });
-
-      return { jwt: authResult.jwt };
+      return result;
     } catch (e) {
       if (e.name === AccountServiceErrors.UserAlreadyExists) {
         throw new UnauthorizedException('User already Exists');
@@ -66,15 +62,13 @@ export class AccountController {
   }
 
   @Post('login')
-  @UseInterceptors(BruteforceInterceptor)
+  @UseInterceptors(RefreshTokenInterceptor, BruteforceInterceptor)
   @HttpCode(200)
-  async login(@Body() body: CredentialsDto, @Res() res): Promise<JwtDto> {
+  async login(@Body() body: CredentialsDto): Promise<JwtDto> {
     try {
-      const authResult = await this.accountService.login(body);
-      res.setCookie('refreshToken', authResult.refreshToken, {
-        ...this.configService.get('refreshTokenCookieOptions'),
-      });
-      return { jwt: authResult.jwt };
+      const result = await this.accountService.login(body);
+
+      return result;
     } catch (e) {
       if (e.name === AccountServiceErrors.InvalidEmailOrPassword) {
         throw new UnauthorizedException('Invalid email or password');
@@ -84,17 +78,13 @@ export class AccountController {
   }
 
   @Post('login-two-fa')
-  @UseInterceptors(BruteforceInterceptor)
+  @UseInterceptors(RefreshTokenInterceptor, BruteforceInterceptor)
   @HttpCode(200)
-  async loginTwoFa(@Body() body: LoginTwoFaDto, @Res() res): Promise<JwtDto> {
+  async loginTwoFa(@Body() body: LoginTwoFaDto): Promise<JwtDto> {
     try {
-      const authResult = await this.accountService.loginTwoFa(body);
+      const result = await this.accountService.loginTwoFa(body);
 
-      res.setCookie('refreshToken', authResult.refreshToken, {
-        ...this.configService.get('refreshTokenCookieOptions'),
-      });
-
-      return { jwt: authResult.jwt };
+      return result;
     } catch (e) {
       if (
         e.name === AccountServiceErrors.InvalidEmailOrPasswordOrVerificationCode
@@ -108,16 +98,13 @@ export class AccountController {
   }
 
   @Get('refresh-token')
+  @UseInterceptors(RefreshTokenInterceptor)
   @HttpCode(200)
-  async refreshToken(@Req() req, @Res() res): Promise<JwtDto> {
+  async refreshToken(@Req() req): Promise<JwtDto> {
     try {
-      const authResult = await this.accountService.refreshToken(req.cookies?.refreshToken);
+      const result = await this.accountService.refreshToken(req.cookies?.refreshToken);
 
-      res.setCookie('refreshToken', authResult.refreshToken, {
-        ...this.configService.get('refreshTokenCookieOptions'),
-      });
-
-      return { jwt: authResult.jwt };
+      return result;
     } catch (e) {
       if (e.name === AccountServiceErrors.InvalidRefreshToken) {
         throw new BadRequestException('Invalid refresh token');

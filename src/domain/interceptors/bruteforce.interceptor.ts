@@ -9,7 +9,7 @@ import {
 } from '@nestjs/common';
 import { Observable } from 'rxjs';
 import { RateLimiterRedis } from 'rate-limiter-flexible';
-import { catchError, map } from 'rxjs/operators';
+import { catchError, switchMap } from 'rxjs/operators';
 import { RedisProvider, RedisPrefix } from '../providers/redis.provider';
 import { ConfigService } from '@nestjs/config';
 import * as hyperid from 'hyperid';
@@ -181,7 +181,7 @@ export class BruteforceInterceptor implements NestInterceptor {
           }
         }
       }),
-      map(async data => {
+      switchMap(async data => {
         if (data.jwt) {
           await this.resetPoints(username, ip);
           if (!isDeviceTrusted) {
