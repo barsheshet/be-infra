@@ -5,7 +5,7 @@ import {
   CallHandler,
 } from '@nestjs/common';
 import { Observable } from 'rxjs';
-import { switchMap } from 'rxjs/operators';
+import { mergeMap } from 'rxjs/operators';
 import { RedisProvider, RedisPrefix } from '../providers/redis.provider';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
@@ -32,7 +32,7 @@ export class RefreshTokenInterceptor implements NestInterceptor {
     const res = ctx.getResponse();
 
     return next.handle().pipe(
-      switchMap(async data => {
+      mergeMap(async data => {
         if (data.jwt) {
           const refreshToken = Utils.generateToken();
           const userId = this.jwtService.decode(data.jwt).sub;
