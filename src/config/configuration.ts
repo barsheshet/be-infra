@@ -45,6 +45,9 @@ export const config = () => ({
   nodeEnv: process.env.NODE_ENV,
   port: parseInt(process.env.PORT, 10) || 3000,
   host: process.env.HOST || 'http://localhost:3000',
+  cors: {
+    origin: ['http://localhost']
+  },
   db: {
     type: process.env.DB_TYPE || 'postgres',
     host: process.env.DB_HOST || 'localhost',

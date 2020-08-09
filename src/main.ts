@@ -5,14 +5,15 @@ import {
   NestFastifyApplication,
 } from '@nestjs/platform-fastify';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
-import * as helmet from 'helmet';
+import * as helmet from 'fastify-helmet';
+import * as fastifyCookie from 'fastify-cookie';
 import { AppModule } from './app.module';
 import { ConfigService } from '@nestjs/config';
-import * as fastifyCookie from 'fastify-cookie';
 
 async function bootstrap() {
   const fastifyAdapter = new FastifyAdapter();
-  fastifyAdapter.register(fastifyCookie);
+  fastifyAdapter.register(fastifyCookie as any);
+  fastifyAdapter.register(helmet);
 
   const app = await NestFactory.create<NestFastifyApplication>(
     AppModule,
@@ -21,8 +22,7 @@ async function bootstrap() {
 
   const configService = app.get(ConfigService);
 
-  app.enableCors();
-  app.use(helmet());
+  app.enableCors(configService.get('cors'));
 
   app.useGlobalPipes(
     new ValidationPipe({
