@@ -33,7 +33,7 @@ export class RefreshTokenInterceptor implements NestInterceptor {
 
     return next.handle().pipe(
       mergeMap(async data => {
-        if (data.jwt) {
+        if (data?.jwt) {
           const refreshToken = Utils.generateToken();
           const userId = this.jwtService.decode(data.jwt).sub;
           const key = `${RedisPrefix.RefreshToken}:${userId}:${refreshToken}`;

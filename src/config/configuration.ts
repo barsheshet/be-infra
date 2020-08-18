@@ -46,7 +46,8 @@ export const config = () => ({
   port: parseInt(process.env.PORT, 10) || 3000,
   host: process.env.HOST || 'http://localhost:3000',
   cors: {
-    origin: ['http://localhost']
+    origin: ['http://localhost:3001'],
+    credentials: true
   },
   db: {
     type: process.env.DB_TYPE || 'postgres',
@@ -87,24 +88,26 @@ export const config = () => ({
     options: {
       algorithm: process.env.JWT_ALGORITHM || 'RS256',
       issuer: process.env.JWT_ISSUER || 'be-infra',
-      expiresIn: '15m' // 15 minutes,
+      expiresIn: '1m' // 15 minutes,
     },
   },
   refreshTokenCookieOptions: {
     httpOnly: true,
     sameSite: true,
+    path: '/',
     maxAge: 60 * 60 * 24 * 30, // 30 days
     secure: process.env.NODE_ENV !== 'development',
   },
   trustedDeviceCookieOptions: {
     httpOnly: true,
     sameSite: true,
+    path: '/',
     maxAge: 60 * 60 * 24 * 365 * 20, // 20 years :),
     secure: process.env.NODE_ENV !== 'development',
   },
   verifications: {
     email: {
-      url: process.env.VERIFICATION_EMAIL_URL || 'http://localhost:9000',
+      url: process.env.VERIFICATION_EMAIL_URL || 'http://localhost:3001/verify-email',
       expiration: {
         hours: 24,
       },

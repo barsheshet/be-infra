@@ -113,7 +113,7 @@ export class AccountController {
     }
   }
 
-  @Post('verifyEmail')
+  @Post('verify-email')
   @HttpCode(200)
   async verifyEmail(@Body() data: VerifyEmailDto): Promise<void> {
     try {

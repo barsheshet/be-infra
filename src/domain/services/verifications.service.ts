@@ -82,7 +82,7 @@ export class VerificationsService {
   async verifySms(
     userId: string,
     mobile: string,
-    verificaitonCode: string,
+    verificationCode: string,
   ): Promise<boolean> {
     const key = `${RedisPrefix.SmsVerification}:${mobile}`;
     const value = await this.redis.get(key);
@@ -90,7 +90,7 @@ export class VerificationsService {
       const parsed = JSON.parse(value);
       if (
         parsed.userId === userId &&
-        parsed.verificationCode === verificaitonCode
+        parsed.verificationCode === verificationCode
       ) {
         return true;
       }

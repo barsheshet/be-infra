@@ -62,7 +62,7 @@ export class BruteforceInterceptor implements NestInterceptor {
   }
 
   private async trustDevice(username: string, deviceId: string): Promise<void> {
-    await this.redis.sadd(`${RedisPrefix.TrustedDevice}${username}`, deviceId);
+    await this.redis.sadd(`${RedisPrefix.TrustedDevice}:${username}`, deviceId);
   }
 
   private getCurrentLimits(
@@ -182,7 +182,7 @@ export class BruteforceInterceptor implements NestInterceptor {
         }
       }),
       mergeMap(async data => {
-        if (data.jwt) {
+        if (data?.jwt) {
           await this.resetPoints(username, ip);
           if (!isDeviceTrusted) {
             const uuid = hyperid({ urlSafe: true });

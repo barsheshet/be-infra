@@ -28,12 +28,12 @@ import {
 export class AdminController {
   constructor(private readonly adminService: AdminService) {}
 
-  @Get('getUsersList')
+  @Get('get-users-list')
   getUsersList(@Query() options: GetUsersListDto): Promise<UsersListDto> {
     return this.adminService.getUsersList(options);
   }
 
-  @Get('getUserDetails')
+  @Get('get-user-details')
   async getUserDetails(
     @Query() { userId }: UserIdDto,
   ): Promise<UserExtendedDto> {
@@ -48,7 +48,7 @@ export class AdminController {
     }
   }
 
-  @Post('blockUser')
+  @Post('block-user')
   @HttpCode(200)
   async blockUser(@Body()  { userId }: UserIdDto): Promise<void> {
     try {
@@ -61,7 +61,7 @@ export class AdminController {
     }
   }
 
-  @Post('unBlockUser')
+  @Post('unblock-user')
   @HttpCode(200)
   async unBlockUser(@Body() { userId }: UserIdDto): Promise<void> {
     try {

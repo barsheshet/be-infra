@@ -112,7 +112,7 @@ export class AccountService {
   async loginTwoFa({
     email,
     password,
-    verificaitonCode,
+    verificationCode,
   }: LoginTwoFaDto): Promise<JwtDto> {
     const user = await this.usersRepository.findOne({ email });
     if (user && (await user.verifyPassword(password))) {
@@ -120,7 +120,7 @@ export class AccountService {
         await this.verificationsService.verifySms(
           user.id,
           user.mobile,
-          verificaitonCode,
+          verificationCode,
         )
       ) {
         return { jwt: await this.createJwt(user)};

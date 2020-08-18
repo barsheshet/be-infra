@@ -25,7 +25,7 @@ export class LoginTwoFaDto extends CredentialsDto {
   @IsNotEmpty()
   @IsString()
   @MaxLength(6)
-  verificaitonCode: string;
+  verificationCode: string;
 }
 
 export class JwtDto {
