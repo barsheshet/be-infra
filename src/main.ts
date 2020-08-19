@@ -5,7 +5,7 @@ import {
   NestFastifyApplication,
 } from '@nestjs/platform-fastify';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
-//import * as helmet from 'fastify-helmet';
+import * as helmet from 'fastify-helmet';
 import * as fastifyCookie from 'fastify-cookie';
 import { AppModule } from './app.module';
 import { ConfigService } from '@nestjs/config';
@@ -14,8 +14,9 @@ async function bootstrap() {
   const fastifyAdapter = new FastifyAdapter();
   fastifyAdapter.register(fastifyCookie as any);
 
-  // TODO: configure helmet to work  
-  //fastifyAdapter.register(helmet);
+  fastifyAdapter.register(helmet, {
+    contentSecurityPolicy: false
+  });
 
   const app = await NestFactory.create<NestFastifyApplication>(
     AppModule,
