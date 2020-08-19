@@ -4,6 +4,7 @@ import { Repository, Connection } from 'typeorm';
 import { User } from '../entities/user.entity';
 import { VerificationsService } from './verifications.service';
 import {
+  SignupDto,
   UserDto,
   UserInfoDto,
   SetMobileDto,
@@ -51,8 +52,8 @@ export class AccountService {
     });
   }
 
-  async signup({ email, password }: CredentialsDto): Promise<JwtDto> {
-    const strength = testPassword(password);
+  async signup(data: SignupDto): Promise<JwtDto> {
+    const strength = testPassword(data.password);
     if (!strength.strong) {
       throw new ServiceError({
         message: strength.errors[0],
@@ -65,7 +66,7 @@ export class AccountService {
     await queryRunner.startTransaction('SERIALIZABLE');
 
     try {
-      let user = await queryRunner.manager.findOne(User, { email });
+      let user = await queryRunner.manager.findOne(User, { email: data.email });
       if (user) {
         throw new ServiceError({
           name: AccountServiceErrors.UserAlreadyExists,
@@ -73,10 +74,16 @@ export class AccountService {
       }
 
       user = new User();
-      user.email = email;
+      user.email = data.email;
+      user.info = {
+        firstName: data.firstName,
+        lastName: data.lastName
+      }
+      user.mobile = data.mobile;
+
       user.role = 'member';
 
-      await user.setPassword(password);
+      await user.setPassword(data.password);
 
       await queryRunner.manager.save(user);
       await queryRunner.commitTransaction();
@@ -136,7 +143,7 @@ export class AccountService {
     if (tokens[0]) {
       const userId = tokens[0].split(':')[1];
       const user = await this.usersRepository.findOne(userId);
-      if (!user.isBlocked) {
+      if (user && !user.isBlocked) {
         return { jwt: await this.createJwt(user)};
       }
     }

@@ -88,7 +88,7 @@ export const config = () => ({
     options: {
       algorithm: process.env.JWT_ALGORITHM || 'RS256',
       issuer: process.env.JWT_ISSUER || 'be-infra',
-      expiresIn: '1m' // 15 minutes,
+      expiresIn: '15m' // 15 minutes,
     },
   },
   refreshTokenCookieOptions: {

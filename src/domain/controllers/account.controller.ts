@@ -21,6 +21,7 @@ import {
 import {
   JwtDto,
   CredentialsDto,
+  SignupDto,
   LoginTwoFaDto,
   VerifyEmailDto,
   UserDto,
@@ -32,20 +33,18 @@ import {
 } from '../dto/account.dto';
 import { AuthGuard } from '../guards/auth.guard';
 import { AclGuard } from '../guards/acl.guard';
-import { ConfigService } from '@nestjs/config';
 
 @ApiTags('Account')
 @Controller('/api/v1/account')
 export class AccountController {
   constructor(
-    private readonly accountService: AccountService,
-    private readonly configService: ConfigService
+    private readonly accountService: AccountService
   ) {}
 
   @Post('signup')
   @UseInterceptors(RefreshTokenInterceptor, BruteforceInterceptor)
   @HttpCode(200)
-  async signup(@Body() body: CredentialsDto): Promise<JwtDto> {
+  async signup(@Body() body: SignupDto): Promise<JwtDto> {
     try {
       const result = await this.accountService.signup(body);
 

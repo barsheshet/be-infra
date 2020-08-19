@@ -28,6 +28,22 @@ export class LoginTwoFaDto extends CredentialsDto {
   verificationCode: string;
 }
 
+
+export class SignupDto extends CredentialsDto {
+  @IsString()
+  @IsOptional()
+  firstName?: string;
+
+  @IsString()
+  @IsOptional()
+  lastName?: string;
+
+  @IsString()
+  @IsOptional()
+  @IsMobilePhone()
+  mobile?: string;
+}
+
 export class JwtDto {
   jwt: string;
 }
