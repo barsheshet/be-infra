@@ -10,8 +10,12 @@ ignore:
     - typeorm > cli-highlight > mz > thenify-all > thenify:
         reason: None given
         expires: '2020-07-16T12:59:28.652Z'
+  SNYK-JS-LODASH-590103:
+    - '@nestjs/swagger > lodash':
+        reason: ''
+        expires: '2020-09-18T15:56:29.722Z'
 # patches apply the minimum changes required to fix a vulnerability
 patch:
   SNYK-JS-LODASH-567746:
     - '@nestjs/swagger > lodash':
-        patched: '2020-06-07T16:18:51.893Z'
+        patched: '2020-08-19T15:54:08.458Z'
