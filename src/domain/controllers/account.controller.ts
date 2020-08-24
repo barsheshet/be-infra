@@ -30,6 +30,7 @@ import {
   SetMobileDto,
   SetEmailDto,
   SetSmsTwoFaDto,
+  LogoutDto,
 } from '../dto/account.dto';
 import { AuthGuard } from '../guards/auth.guard';
 import { AclGuard } from '../guards/acl.guard';
@@ -129,8 +130,13 @@ export class AccountController {
   @ApiBearerAuth()
   @HttpCode(200)
   @UseGuards(AuthGuard, AclGuard)
-  async logout(@Req() req): Promise<void> {
-    await this.accountService.logout(req.user.id);
+  async logout(@Req() req, @Body() data: LogoutDto): Promise<void> {
+    const options = {
+      userId: req.user.id,
+      refreshToken: req.cookies?.refreshToken,
+      allDevices: data.allDevices,
+    }
+    await this.accountService.logout(options);
   }
 
   @Get('get-profile')

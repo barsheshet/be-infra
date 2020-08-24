@@ -103,3 +103,8 @@ export class SetSmsTwoFaDto {
   @IsBoolean()
   smsTwoFa: boolean;
 }
+
+export class LogoutDto {
+  @IsBoolean()
+  allDevices: boolean;
+}

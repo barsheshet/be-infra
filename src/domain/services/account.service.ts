@@ -169,9 +169,13 @@ export class AccountService {
     });
   }
 
-  async logout(id: string): Promise<void> {
-    const tokens = await this.redis.keys(`${RedisPrefix.RefreshToken}:${id}:*`);
-    await this.redis.del(tokens);
+  async logout(options : {userId: string, refreshToken: string, allDevices: boolean}): Promise<void> {
+    if (options.allDevices) {
+      const tokens = await this.redis.keys(`${RedisPrefix.RefreshToken}:${options.userId}:*`);
+      await this.redis.del(tokens);
+    } else {
+      await this.redis.del(`${RedisPrefix.RefreshToken}:${options.userId}:${options.refreshToken}`);
+    }
   }
 
   private async getById(id: string): Promise<User> {
