@@ -6,16 +6,8 @@ export const envSchema = Joi.object({
     .required(),
   PORT: Joi.number(),
   HOST: Joi.string().uri(),
-  DB_TYPE: Joi.string().valid(
-    'mysql',
-    'postgres',
-    'cockroachdb',
-    'mariadb',
-    'sqlite',
-    'oracle',
-    'mssql',
-    'mongodb',
-  ),
+  // only PostgreSQL supported at the moment
+  DB_TYPE: Joi.string().valid('postgres'),
   DB_HOST: Joi.string(),
   DB_PORT: Joi.number(),
   DB_USERNAME: Joi.string(),
@@ -39,6 +31,7 @@ export const envSchema = Joi.object({
     .email()
     .required(),
   SYSTEM_ADMIN_PASSWORD: Joi.string().required(),
+  CORS: Joi.string().default('')
 });
 
 export const config = () => ({
@@ -46,7 +39,7 @@ export const config = () => ({
   port: parseInt(process.env.PORT, 10) || 3000,
   host: process.env.HOST || 'http://localhost:3000',
   cors: {
-    origin: ['http://localhost:3001'],
+    origin: process.env.CORS.split(','),
     credentials: true
   },
   db: {

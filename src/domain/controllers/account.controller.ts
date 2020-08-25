@@ -52,7 +52,7 @@ export class AccountController {
       return result;
     } catch (e) {
       if (e.name === AccountServiceErrors.UserAlreadyExists) {
-        throw new UnauthorizedException('User already Exists');
+        throw new UnauthorizedException('User already exists');
       }
       if (e.name === AccountServiceErrors.WeakPassword) {
         throw new BadRequestException(e.message);
