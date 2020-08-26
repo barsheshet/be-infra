@@ -162,6 +162,7 @@ export class AccountService {
       if (user) {
         user.isEmailVerified = true;
         await this.usersRepository.save(user);
+        return;
       }
     }
     throw new ServiceError({

@@ -137,11 +137,19 @@ export const config = () => ({
       email: process.env.SYSTEM_ADMIN_EMAIL,
       password: process.env.SYSTEM_ADMIN_PASSWORD,
       role: 'admin',
+      info: {
+        firstName: 'Admin',
+        lastName: 'Admin'
+      },
     },
     testUser: {
       email: 'test@be-infra.com',
       password: 'Aa123456789!',
       role: 'member',
+      info: {
+        firstName: 'Test',
+        lastName: 'Test'
+      },
     },
   },
   acl: {

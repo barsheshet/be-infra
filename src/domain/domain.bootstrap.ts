@@ -23,18 +23,23 @@ export class DomainBootstrap implements OnApplicationBootstrap {
     Logger.log('Run seeds', DomainBootstrap.name);
   }
 
-  async seedUser(creds: {
+  async seedUser(data: {
     email: string;
     password: string;
     role: string;
+    info: { 
+      firstName: string; 
+      lastName: string;
+    }
   }): Promise<void> {
-    let user = await this.usersRepository.findOne({ email: creds.email });
+    let user = await this.usersRepository.findOne({ email: data.email });
     if (!user) {
       user = new User();
-      user.email = creds.email;
+      user.email = data.email;
       user.isEmailVerified = true;
-      user.role = creds.role;
-      await user.setPassword(creds.password);
+      user.role = data.role;
+      user.info = data.info;
+      await user.setPassword(data.password);
       await this.usersRepository.save(user);
     }
   }

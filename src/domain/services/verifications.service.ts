@@ -41,8 +41,8 @@ export class VerificationsService {
     await this.redis.expireat(key, expiration);
 
     const Url = new URL(`${this.config.email.url}`);
-
     Url.searchParams.append('token', token);
+    
     return this.emailProvider.sendSingleEmail({
       subject: 'Verify Your Email Address',
       to: email,
