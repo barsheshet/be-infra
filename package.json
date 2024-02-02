@@ -40,7 +40,7 @@
     "class-validator": "^0.13.0",
     "fastify-cookie": "^4.0.2",
     "fastify-helmet": "^5.0.0",
-    "fastify-swagger": "^2.5.1",
+    "fastify-swagger": "^4.3.2",
     "hyperid": "^2.0.5",
     "ioredis": "^4.27.8",
     "moment": "^2.26.0",
