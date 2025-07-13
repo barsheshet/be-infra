@@ -31,7 +31,7 @@
     "@nestjs/config": "^0.4.0",
     "@nestjs/core": "^7.0.0",
     "@nestjs/jwt": "^7.0.0",
-    "@nestjs/platform-fastify": "^7.4.2",
+    "@nestjs/platform-fastify": "^10.3.2",
     "@nestjs/swagger": "^4.7.16",
     "@nestjs/typeorm": "^7.0.0",
     "@types/ioredis": "^4.16.3",
@@ -48,10 +48,10 @@
     "pg": "^8.0.3",
     "rate-limiter-flexible": "^2.1.6",
     "reflect-metadata": "^0.1.13",
-    "rimraf": "^3.0.2",
+    "rimraf": "^4.3.1",
     "rxjs": "^6.5.4",
-    "snyk": "^1.518.0",
-    "typeorm": "^0.2.24"
+    "snyk": "^1.1297.3",
+    "typeorm": "^0.3.18"
   },
   "devDependencies": {
     "@nestjs/cli": "^7.0.0",
